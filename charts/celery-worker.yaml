@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: celery-worker
+  name: celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celery-worker
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: celery-worker
+    spec:
+      containers:
+        - args:
+            - celery
+            - -A
+            - app.celery_worker.celery
+            - worker
+            - --loglevel=info
+          env:
+            - name: CELERY_BROKER_URL
+              value: redis://redis:6379/0
+            - name: CELERY_RESULT_BACKEND
+              value: redis://redis:6379/0
+          image: irynanak/monitoring-app
+          name: celery-worker
+      restartPolicy: Always
