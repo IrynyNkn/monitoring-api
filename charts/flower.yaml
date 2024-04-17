@@ -26,7 +26,7 @@ spec:
               value: redis://redis:6379/0
             - name: CELERY_RESULT_BACKEND
               value: redis://redis:6379/0
-          image: flower
+          image: irynanak/monitoring-app
           name: flower
           ports:
             - containerPort: 5555
