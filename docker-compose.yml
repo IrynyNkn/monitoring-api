@@ -7,39 +7,41 @@ services:
       - "8000:80"
     volumes:
       - ./app:/source/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 80 --reload
+    command: uvicorn app.entrypoint:fastapi_app --host 0.0.0.0 --port 80 --reload
+    env_file:
+      - .env
     depends_on:
       - redis
+
+  celery_worker:
+    container_name: celery_worker
+    build: .
+    command: celery -A app.entrypoint:celery_app worker --loglevel=info
+    volumes:
+      - ./app:/source/app
+    env_file:
+      - .env
+    depends_on:
+      - app
+      - redis
+
+  flower:
+    container_name: flower
+    build: .
+    command: celery -A app.entrypoint:celery_app flower --port:5555
+    ports:
+      - "5556:5555"
+    volumes:
+      - ./app:/source/app
+    env_file:
+      - .env
+    depends_on:
+      - app
+      - redis
+      - celery_worker
 
   redis:
     container_name: redis
     image: redis:alpine
     ports:
       - "6379:6379"
-
-  celery_worker:
-    container_name: celery_worker
-    build: .
-    command: celery -A app.celery_worker.celery worker --loglevel=info
-    volumes:
-      - ./app:/source/app
-    depends_on:
-      - app
-      - redis
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-
-  flower:
-    container_name: flower
-    build: .
-    command: celery -A app.celery_worker.celery flower --port:5555
-    ports:
-      - "5556:5555"
-    depends_on:
-      - app
-      - redis
-      - celery_worker
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0

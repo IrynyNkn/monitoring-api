@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - image: redis:alpine
-          name: redis
+          name: celery_redis
           ports:
             - containerPort: 6379
               hostPort: 6379

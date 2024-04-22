@@ -1,1 +1,8 @@
-from .icmp_ping import router as icmp_ping_router
+from fastapi import APIRouter
+
+from .endpoints.icmp_ping import router as ping_router
+
+
+router = APIRouter()
+
+router.include_router(ping_router)

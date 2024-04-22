@@ -25,9 +25,9 @@ spec:
             - --loglevel=info
           env:
             - name: CELERY_BROKER_URL
-              value: redis://redis:6379/0
+              value: celery_redis://celery_redis:6379/0
             - name: CELERY_RESULT_BACKEND
-              value: redis://redis:6379/0
+              value: celery_redis://celery_redis:6379/0
           image: irynanak/monitoring-app
           name: celery-worker
       restartPolicy: Always
