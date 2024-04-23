@@ -12,6 +12,7 @@ services:
       - .env
     depends_on:
       - redis
+      - influxdb
 
   celery_worker:
     container_name: celery_worker
@@ -45,3 +46,22 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
+
+  influxdb:
+    container_name: influxdb
+    image: influxdb:latest
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=admin-ira-pw
+      - DOCKER_INFLUXDB_INIT_ORG=ira-org
+      - DOCKER_INFLUXDB_INIT_BUCKET=ira-bucket
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=ira-super-secret-auth-token
+
+volumes:
+  influxdb_data:
+    name: influxdb_data

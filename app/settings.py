@@ -9,3 +9,10 @@ class AppSettings(BaseSettings):
     redis_host: str = Field(..., alias="REDIS_HOST")
     redis_port: int = Field(..., alias="REDIS_PORT")
     redis_app_db: int = Field(..., alias="REDIS_APP_DB")
+
+    influxdb_url: str = Field(..., alias="INFLUXDB_URL")
+    influxdb_username: str = Field(..., alias="DOCKER_INFLUXDB_INIT_USERNAME")
+    influxdb_password: str = Field(..., alias="DOCKER_INFLUXDB_INIT_PASSWORD")
+    influxdb_org: str = Field(..., alias="DOCKER_INFLUXDB_INIT_ORG")
+    influxdb_bucket: str = Field(..., alias="DOCKER_INFLUXDB_INIT_BUCKET")
+    influxdb_admin_token: str = Field(..., alias="DOCKER_INFLUXDB_INIT_ADMIN_TOKEN")

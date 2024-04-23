@@ -1,1 +1,1 @@
-from .ping_config import PingConfig
+from .ping_config import PingConfig, ExtendedPingConfig

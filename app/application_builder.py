@@ -3,6 +3,7 @@ from typing import Self, Optional
 from celery import Celery
 from fastapi import FastAPI, APIRouter
 from redis import Redis
+from influxdb_client import InfluxDBClient
 
 from app.application import Application
 from app.settings import AppSettings
@@ -15,6 +16,7 @@ class ApplicationBuilder:
         self._fastapi_app = None
         self._celery_app = None
         self._redis = None
+        self._influxdb_client = None
 
     @classmethod
     def from_config(cls, config: AppSettings) -> "ApplicationBuilder":
@@ -54,6 +56,18 @@ class ApplicationBuilder:
 
         return self
 
+    def with_influxdb(self, override_with: Optional[InfluxDBClient] = None) -> Self:
+        if override_with is None:
+            self._influxdb_client = InfluxDBClient(
+                url=self.config.influxdb_url,
+                token=self.config.influxdb_admin_token,
+                org=self.config.influxdb_org
+            )
+        else:
+            self._influxdb_client = override_with
+
+        return self
+
     def build(self) -> Application:
         self._validate_application()
 
@@ -62,8 +76,9 @@ class ApplicationBuilder:
             fastapi=self._fastapi_app,
             celery=self._celery_app,
             redis=self._redis,
+            influxdb_client=self._influxdb_client
         )
 
     def _validate_application(self) -> None:
-        if self._celery_app is None or self._fastapi_app is None or self._redis is None:
+        if self._celery_app is None or self._fastapi_app is None or self._redis is None or self._influxdb_client is None:
             raise ValueError("All applications must be configured")

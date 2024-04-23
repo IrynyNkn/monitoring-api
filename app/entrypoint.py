@@ -13,6 +13,7 @@ app = (
             [router],
             prefix=constants.ROUTER_PATH,
         )
+    .with_influxdb()
     .build()
 )
 

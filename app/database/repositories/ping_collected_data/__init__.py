@@ -1,0 +1,2 @@
+from .interface import IPingCollectedDataRepository
+from .influxdb_repository import PingCollectedDataRepository

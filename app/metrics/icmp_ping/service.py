@@ -4,8 +4,8 @@ import uuid
 from icmplib import ping, Host
 from celery import Task
 
-from app.database.repositories import IPingConfigRepository
-from app.metrics.entities import PingConfig
+from app.database.repositories import IPingConfigRepository, IPingCollectedDataRepository
+from app.metrics.entities import PingConfig, ExtendedPingConfig
 
 
 class PingService:
@@ -13,8 +13,10 @@ class PingService:
         self,
         ping_repository: IPingConfigRepository,
         ping_task: Task,
+        metrics_repository: IPingCollectedDataRepository,
     ) -> None:
         self._ping_repository = ping_repository
+        self._metrics_repository = metrics_repository
         self._ping_task = ping_task
 
         self._logger = logging.getLogger(__name__)
@@ -28,7 +30,7 @@ class PingService:
             if ping_config.status == "active":
                 response = ping(ping_config.host, count=1)
 
-                self._save_ping_response(response)
+                self._save_ping_response(response, ping_config)
 
                 self._ping_task.apply_async(
                     args=[ping_config.id],
@@ -36,8 +38,8 @@ class PingService:
                 )
 
                 return
-
-        self._logger.info(f"Ping to {ping_config.host} was canceled.")
+        else:
+            self._logger.info(f"Ping to {ping_id} was canceled.")
 
     def add_new_ping(
         self,
@@ -59,5 +61,9 @@ class PingService:
 
         return ping_config.id
 
-    def _save_ping_response(self, response: Host) -> None:
-        pass
+    def _save_ping_response(self, response: Host, config: PingConfig) -> None:
+        ping_data = ExtendedPingConfig(
+            **config.to_dict(),
+            round_trip_time=response.avg_rtt
+        )
+        self._metrics_repository.save_ping_data(response, ping_data)
