@@ -34,3 +34,19 @@ def get_deployments():
 
     response = app.kube_metrics_service.get_mocked_deployments()
     return JSONResponse({"deployments": response})
+
+
+@router.get("/node-metrics", status_code=status.HTTP_200_OK)
+def get_deployments():
+    from app.entrypoint import app
+
+    response = app.kube_metrics_service.get_node_metrics()
+    return JSONResponse({"node-metrics": response})
+
+
+@router.get("/pod-metrics", status_code=status.HTTP_200_OK)
+def get_deployments():
+    from app.entrypoint import app
+
+    response = app.kube_metrics_service.get_pod_metrics()
+    return JSONResponse({"pod-metrics": response})

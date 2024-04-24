@@ -1,12 +1,20 @@
 import logging
+from typing import Any
 
 from celery import Task
-# from kubernetes import client, config
+from kubernetes import client, config
 
 from app.database.repositories.kube_collected_data import IKubeCollectedDataRepository
 
 # mocks
-from app.metrics.kube_metrics.mocks import namespaces_mock, deployments_mock, pods_mock, nodes_mock
+from app.metrics.kube_metrics.mocks import (
+    namespaces_mock,
+    deployments_mock,
+    pods_mock,
+    nodes_mock,
+    pods_dynamic_mocked_metrics,
+    nodes_dynamic_mocked_metrics
+)
 
 
 class KubeMetricsService:
@@ -24,6 +32,12 @@ class KubeMetricsService:
         # config.load_incluster_config()
         # self._core_api = client.CoreV1Api()
         # self._apps_api = client.AppsV1Api()
+        # self._custom_objects_api = client.CustomObjectsApi()
+        # self._node_metrics = self._custom_objects_api.list_cluster_custom_object(
+        #     group="metrics.k8s.io",
+        #     version="v1beta1",
+        #     plural="nodes"
+        # )
 
 
     def get_mocked_namespaces(self):
@@ -37,6 +51,45 @@ class KubeMetricsService:
 
     def get_mocked_nodes(self):
         return nodes_mock
+
+    def get_mocked_node_metrics(self):
+        return nodes_dynamic_mocked_metrics
+
+    def get_mocked_pod_metrics(self):
+        return pods_dynamic_mocked_metrics
+
+    def retrieve_kube_dynamic_metrics(self):
+        node_metrics = self.get_mocked_node_metrics()
+        pod_metrics = self.get_mocked_pod_metrics()
+
+        self.save_kube_dynamic_metrics(node_metrics, pod_metrics)
+
+        self._kube_metrics_collection_task.apply_async(countdown=240, expires=240.01)
+        return node_metrics, pod_metrics
+
+    def save_kube_dynamic_metrics(self, node_metrics: dict[str, Any], pod_metrics: dict[str, Any]) -> None:
+        self._kube_repository.save_kube_data(node_metrics, pod_metrics)
+
+    # def get_node_metrics(self):
+    #     node_metrics = self._custom_objects_api.list_cluster_custom_object(
+    #         group="metrics.k8s.io",
+    #         version="v1beta1",
+    #         plural="nodes"
+    #     )
+    #     print("Node Metrics:")
+    #     print(node_metrics)
+    #     return node_metrics
+
+    # def get_pod_metrics(self):
+    #     pod_metrics = self._custom_objects_api.list_namespaced_custom_object(
+    #         group="metrics.k8s.io",
+    #         version="v1beta1",
+    #         plural="pods",
+    #         namespace="default"
+    #     )
+    #     print("Pod Metrics:")
+    #     print(pod_metrics)
+    #     return pod_metrics
 
     # def get_namespaces(self):
         # namespaces = self._core_api.list_namespace()

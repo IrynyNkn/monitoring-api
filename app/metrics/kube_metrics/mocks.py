@@ -157,3 +157,111 @@ nodes_mock = [
         "taints": []
     }
 ]
+
+pods_dynamic_mocked_metrics = {
+    "kind": "PodMetricsList",
+    "apiVersion": "metrics.k8s.io/v1beta1",
+    "metadata": {},
+    "items": [
+        {
+            "metadata": {
+                "name": "celery-worker-89b686b76-wcj5r",
+                "namespace": "default",
+                "creationTimestamp": "2024-04-24T12:39:56Z",
+                "labels": {
+                    "app": "celery-worker",
+                    "pod-template-hash": "89b686b76"
+                }
+            },
+            "timestamp": "2024-04-24T12:39:19Z",
+            "window": "59.889s",
+            "containers": [
+                {
+                    "name": "celery-worker",
+                    "usage": {
+                        "cpu": "967539n",
+                        "memory": "278292Ki"
+                    }
+                }
+            ]
+        },
+        {
+            "metadata": {
+                "name": "influxdb-5c4f76fb77-k9rwd",
+                "namespace": "default",
+                "creationTimestamp": "2024-04-24T12:39:56Z",
+                "labels": {
+                    "app": "influxdb",
+                    "pod-template-hash": "5c4f76fb77"
+                }
+            },
+            "timestamp": "2024-04-24T12:39:19Z",
+            "window": "59.878s",
+            "containers": [
+                {
+                    "name": "influxdb",
+                    "usage": {
+                        "cpu": "1209392n",
+                        "memory": "46128Ki"
+                    }
+                }
+            ]
+        },
+        {
+            "metadata": {
+                "name": "redis-7cf6f69fd-n75x4",
+                "namespace": "default",
+                "creationTimestamp": "2024-04-24T12:39:56Z",
+                "labels": {
+                    "app": "redis",
+                    "pod-template-hash": "7cf6f69fd"
+                }
+            },
+            "timestamp": "2024-04-24T12:39:19Z",
+            "window": "59.943s",
+            "containers": [
+                {
+                    "name": "redis",
+                    "usage": {
+                        "cpu": "1522429n",
+                        "memory": "3216Ki"
+                    }
+                }
+            ]
+        }
+    ]
+}
+
+nodes_dynamic_mocked_metrics = {
+    "kind": "NodeMetricsList",
+    "apiVersion": "metrics.k8s.io/v1beta1",
+    "metadata": {},
+    "items": [
+        {
+            "metadata": {
+                "name": "minikube",
+                "creationTimestamp": "2024-04-24T12:41:13Z",
+                "labels": {
+                    "beta.kubernetes.io/arch": "arm64",
+                    "beta.kubernetes.io/os": "linux",
+                    "kubernetes.io/arch": "arm64",
+                    "kubernetes.io/hostname": "minikube",
+                    "kubernetes.io/os": "linux",
+                    "minikube.k8s.io/commit": "8220a6eb95f0a4d75f7f2d7b14cef975f050512d",
+                    "minikube.k8s.io/name": "minikube",
+                    "minikube.k8s.io/primary": "true",
+                    "minikube.k8s.io/updated_at": "2024_02_07T12_27_18_0700",
+                    "minikube.k8s.io/version": "v1.32.0",
+                    "node-role.kubernetes.io/control-plane": "",
+                    "node.kubernetes.io/exclude-from-external-load-balancers": ""
+                }
+            },
+            "timestamp": "2024-04-24T12:40:16Z",
+            "window": "1m0.996s",
+            "usage": {
+                "cpu": "231053413n",
+                "memory": "1972348Ki"
+            }
+        }
+    ]
+}

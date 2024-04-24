@@ -73,8 +73,11 @@ class Application:
     @property
     def kube_metrics_service(self) -> KubeMetricsService:
         if not self._kube_metrics_service:
-            from .metrics.celery_tasks import continuous_ping  # change later to valid related task
-            self._kube_metrics_service = KubeMetricsService(self.kube_metrics_repository, cast(Task, continuous_ping))
+            from .metrics.celery_tasks import kube_metrics_collecting
+            self._kube_metrics_service = KubeMetricsService(
+                self.kube_metrics_repository,
+                cast(Task, kube_metrics_collecting)
+            )
 
         return self._kube_metrics_service
 
