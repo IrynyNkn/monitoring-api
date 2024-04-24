@@ -10,9 +10,12 @@ from app.database.repositories import (
     IPingConfigRepository,
     PingConfigRedisRepository,
     IPingCollectedDataRepository,
-    PingCollectedDataRepository
+    PingCollectedDataRepository,
+    IKubeCollectedDataRepository,
+    KubeCollectedDataRepository,
 )
 from app.metrics.icmp_ping.service import PingService
+from app.metrics.kube_metrics.service import KubeMetricsService
 
 
 class Application:
@@ -42,6 +45,9 @@ class Application:
         self._metrics_repository = None
         self._metrics_service = None
 
+        self._kube_metrics_repository = None
+        self._kube_metrics_service = None
+
     @property
     def ping_repository(self) -> IPingConfigRepository:
         if not self._ping_repository:
@@ -63,3 +69,18 @@ class Application:
             self._metrics_repository = PingCollectedDataRepository(self.influxdb_client, self.config)
 
         return self._metrics_repository
+
+    @property
+    def kube_metrics_service(self) -> KubeMetricsService:
+        if not self._kube_metrics_service:
+            from .metrics.celery_tasks import continuous_ping  # change later to valid related task
+            self._kube_metrics_service = KubeMetricsService(self.kube_metrics_repository, cast(Task, continuous_ping))
+
+        return self._kube_metrics_service
+
+    @property
+    def kube_metrics_repository(self) -> IKubeCollectedDataRepository:
+        if not self._kube_metrics_repository:
+            self._kube_metrics_repository = KubeCollectedDataRepository(self.influxdb_client, self.config)
+
+        return self._kube_metrics_repository
