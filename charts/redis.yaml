@@ -16,11 +16,12 @@ spec:
     spec:
       containers:
         - image: redis:alpine
-          name: celery_redis
+          name: redis
           ports:
             - containerPort: 6379
               hostPort: 6379
               protocol: TCP
+          imagePullPolicy: IfNotPresent
       restartPolicy: Always
 ---
 apiVersion: v1

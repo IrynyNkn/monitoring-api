@@ -16,21 +16,48 @@ spec:
       labels:
         app: app
     spec:
+      serviceAccountName: app-service-account
       containers:
         - args:
             - uvicorn
-            - app.main:app
+            - app.entrypoint:fastapi_app
             - --host
             - 0.0.0.0
             - --port
             - "80"
             - --reload
-          image: irynanak/monitoring-app
+          env:
+            - name: CELERY_BROKER_URL
+              value: redis://redis:6379/0
+            - name: CELERY_RESULT_BACKEND
+              value: redis://redis:6379/0
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_APP_DB
+              value: "1"
+            - name: INFLUXDB_URL
+              value: http://influxdb:8086
+            - name: DOCKER_INFLUXDB_INIT_MODE
+              value: setup
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              value: admin
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              value: admin-ira-pw
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              value: ira-org
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              value: ira-bucket
+            - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+              value: ira-super-secret-auth-token
+          image: irynanak/monitoring-app:latest
           name: app
           ports:
             - containerPort: 80
               hostPort: 8000
               protocol: TCP
+          imagePullPolicy: IfNotPresent
       restartPolicy: Always
 ---
 apiVersion: v1

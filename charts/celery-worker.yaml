@@ -20,14 +20,36 @@ spec:
         - args:
             - celery
             - -A
-            - app.celery_worker.celery
+            - app.entrypoint:celery_app
             - worker
             - --loglevel=info
           env:
             - name: CELERY_BROKER_URL
-              value: celery_redis://celery_redis:6379/0
+              value: redis://redis:6379/0
             - name: CELERY_RESULT_BACKEND
-              value: celery_redis://celery_redis:6379/0
-          image: irynanak/monitoring-app
+              value: redis://redis:6379/0
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_APP_DB
+              value: "1"
+            - name: INFLUXDB_URL
+              value: http://influxdb:8086
+            - name: DOCKER_INFLUXDB_INIT_MODE
+              value: setup
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              value: admin
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              value: admin-ira-pw
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              value: ira-org
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              value: ira-bucket
+            - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+              value: ira-super-secret-auth-token
+
+          image: irynanak/monitoring-app:latest
           name: celery-worker
+          imagePullPolicy: IfNotPresent
       restartPolicy: Always
