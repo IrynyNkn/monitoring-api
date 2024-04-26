@@ -2,6 +2,7 @@ from typing import Self, Optional
 
 from celery import Celery
 from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 from redis import Redis
 from influxdb_client import InfluxDBClient
 
@@ -24,6 +25,13 @@ class ApplicationBuilder:
 
     def with_fastapi(self, override_with: Optional[FastAPI] = None) -> Self:
         self._fastapi_app = override_with or FastAPI()
+        self._fastapi_app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["http://localhost:5173"],  # List of allowed origins
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
         return self
 
     def with_fastapi_routes(self, routes: list[APIRouter], prefix: Optional[str] = None) -> Self:

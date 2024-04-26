@@ -1,5 +1,6 @@
 import logging
 import uuid
+from typing import Any, Dict
 
 from icmplib import ping, Host
 from celery import Task
@@ -60,6 +61,13 @@ class PingService:
         self._ping_task.delay(ping_config.id)
 
         return ping_config.id
+
+    def get_ping_metrics(self, ping_id: str) -> Dict[str, Any]:
+        ping_metrics = self._metrics_repository.get_ping_metrics(ping_id)
+        return ping_metrics
+
+    def _get_ping_metadata(self):
+        pass
 
     def _save_ping_response(self, response: Host, config: PingConfig) -> None:
         ping_data = ExtendedPingConfig(

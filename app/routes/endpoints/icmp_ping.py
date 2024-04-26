@@ -6,6 +6,15 @@ from app.routes.serializers import UpdatePing, CreatePing
 router = APIRouter(prefix="/ping")
 
 
+@router.get("/{ping_id}", status_code=status.HTTP_200_OK)
+def get_ping_metrics(ping_id: str):
+    from app.entrypoint import app
+
+    data = app.ping_service.get_ping_metrics(ping_id)
+
+    return JSONResponse(data)
+
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_ping(create_ping_data: CreatePing):
     from app.entrypoint import app
