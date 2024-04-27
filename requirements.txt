@@ -5,6 +5,7 @@ amqp==5.2.0
 annotated-types==0.6.0
 anyio==4.2.0
 async-timeout==4.0.3
+bcrypt==4.1.2
 billiard==4.2.0
 blinker==1.7.0
 cachetools==5.3.3
@@ -41,6 +42,7 @@ pycparser==2.21
 pydantic==2.6.1
 pydantic-settings==2.2.1
 pydantic_core==2.16.2
+PyJWT==2.8.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pythonping==1.1.4

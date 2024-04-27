@@ -66,8 +66,9 @@ class PingService:
         ping_metrics = self._metrics_repository.get_ping_metrics(ping_id)
         return ping_metrics
 
-    def _get_ping_metadata(self):
-        pass
+    # def get_pings(self):
+        # pings = self._metrics_repository.get_user_pings()
+        # return pings
 
     def _save_ping_response(self, response: Host, config: PingConfig) -> None:
         ping_data = ExtendedPingConfig(

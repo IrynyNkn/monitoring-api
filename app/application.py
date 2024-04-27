@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from redis import Redis
 from influxdb_client import InfluxDBClient
 
+from app.metrics.accounts.user_service import UserService
 from app.settings import AppSettings
 from app.database.repositories import (
     IPingConfigRepository,
@@ -48,6 +49,9 @@ class Application:
         self._kube_metrics_repository = None
         self._kube_metrics_service = None
 
+        self._user_service = None
+        self._user_repository = None
+
     @property
     def ping_repository(self) -> IPingConfigRepository:
         if not self._ping_repository:
@@ -87,3 +91,17 @@ class Application:
             self._kube_metrics_repository = KubeCollectedDataRepository(self.influxdb_client, self.config)
 
         return self._kube_metrics_repository
+
+    @property
+    def user_repository(self) -> None:
+        if not self._user_repository:
+            self._user_repository = None
+
+        return self._user_repository
+
+    @property
+    def user_service(self) -> UserService:
+        if not self._user_service:
+            self._user_service = UserService(self.user_repository)
+
+        return self._user_service

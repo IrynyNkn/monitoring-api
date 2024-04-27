@@ -95,11 +95,33 @@ class PingCollectedDataRepository(IPingCollectedDataRepository):
               last_check_time: r.lastCheck,
               first_check_time: r.firstCheck,
               hostname: r.host,
-              total_checks: r.total
+              total_checks: r.total,
+              successful_checks: r.successful
             }}))
         '''
         ping_tables: TableList = self._query_api.query(org=self._settings.influxdb_org, query=query)
-
         output = ping_tables.to_json()
+        return json.loads(output)[0] if output != '[]' else {}
 
-        return json.loads(output)[0]
+    # def get_user_pings(self) -> List[Dict[str, Any]]:
+    #     query = f'''
+    #     from(bucket: "{self._settings.influxdb_bucket}")
+    #     |> range(start: time(v: "1970-01-01T00:00:00Z"))
+    #     |> filter(fn: (r) => r._measurement == "ping")
+    #     |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+    #     |> group(columns: ["id"])
+    #     |> distinct(column: "host")
+    #     '''
+    #
+    #     # | > map(fn: (r) = > ({{
+    #     #     host: r.host,
+    #     #     id: r.id,
+    #     # }}))
+    #
+    #     # |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+    #     ping_tables: TableList = self._query_api.query(org=self._settings.influxdb_org, query=query)
+    #     output = ping_tables.to_json()
+    #
+    #     print("output", output)
+    #     return json.loads(output)
+
