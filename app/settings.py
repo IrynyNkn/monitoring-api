@@ -17,6 +17,8 @@ class AppSettings(BaseSettings):
     influxdb_bucket: str = Field(..., alias="DOCKER_INFLUXDB_INIT_BUCKET")
     influxdb_admin_token: str = Field(..., alias="DOCKER_INFLUXDB_INIT_ADMIN_TOKEN")
 
+    postgres_url: str = Field(..., alias="POSTGRES_URL")
+
     secret_key: str = Field(..., alias="SECRET_KEY")
     auth_enabled: bool = Field(True, alias="AUTH_ENABLED")
     token_life_minutes: int = Field(120, alias="TOKEN_LIFE_MINUTES")

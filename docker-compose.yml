@@ -7,7 +7,8 @@ services:
       - "8000:80"
     volumes:
       - ./app:/source/app
-    command: uvicorn app.entrypoint:fastapi_app --host 0.0.0.0 --port 80 --reload
+      - ./alembic.ini:/source/alembic.ini
+    command: /bin/bash -c "alembic upgrade head && uvicorn app.entrypoint:fastapi_app --host 0.0.0.0 --port 80 --reload"
     env_file:
       - .env
     depends_on:
@@ -20,6 +21,7 @@ services:
     command: celery -A app.entrypoint:celery_app worker --loglevel=info
     volumes:
       - ./app:/source/app
+      - ./alembic.ini:/source/alembic.ini
     env_file:
       - .env
     depends_on:
@@ -62,6 +64,22 @@ services:
       - DOCKER_INFLUXDB_INIT_BUCKET=ira-bucket
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=ira-super-secret-auth-token
 
+  postgres:
+    image: "postgres:9.6"
+    container_name: "postgres"
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+    ports:
+      - "5431:5432"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=metrics-api
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin-ira-pw
+
 volumes:
   influxdb_data:
     name: influxdb_data
+  pgdata:
+    name: pgdata
