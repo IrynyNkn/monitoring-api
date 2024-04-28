@@ -1,11 +1,10 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 import json
 
 import influxdb_client
 from icmplib import Host
 from influxdb_client.client.write_api import SYNCHRONOUS
 from influxdb_client.client.flux_table import TableList
-
 
 from app.settings import AppSettings
 from app.database.repositories.ping_collected_data.interface import IPingCollectedDataRepository

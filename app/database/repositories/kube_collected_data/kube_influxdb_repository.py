@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 import influxdb_client
@@ -15,6 +16,8 @@ class KubeCollectedDataRepository(IKubeCollectedDataRepository):
         self._writer = self._influxdb.write_api(write_options=SYNCHRONOUS)
         self._query_api = self._influxdb.query_api()
 
+        self._logger = logging.getLogger(self.__class__.__name__)
+
     def _save_node_data(self, entity: dict[str, Any]) -> None:
         try:
             for node_d in entity["items"]:
@@ -27,7 +30,7 @@ class KubeCollectedDataRepository(IKubeCollectedDataRepository):
 
                 self._writer.write(bucket=self._settings.influxdb_bucket, org=self._settings.influxdb_org, record=p)
         except Exception as exc:
-            print("Caught error on saving node metrics to db", exc)
+            self._logger.error("Caught error on saving node metrics to db", exc)
 
     def _save_pod_data(self, entity: dict[str, Any]):
         try:
@@ -42,11 +45,14 @@ class KubeCollectedDataRepository(IKubeCollectedDataRepository):
                         .field("memory", container_d["usage"]["memory"])
                     )
 
-                    self._writer.write(bucket=self._settings.influxdb_bucket, org=self._settings.influxdb_org, record=p)
+                    self._writer.write(
+                        bucket=self._settings.influxdb_bucket,
+                        org=self._settings.influxdb_org,
+                        record=p,
+                    )
         except Exception as exc:
-            print("Caught error on saving pod metrics to db", exc)
+            self._logger.error("Caught error on saving pod metrics to db", exc)
 
-    def save_kube_data(self, node_data: dict[str, Any], pod_data: dict[str, Any]):
+    def save_kube_data(self, node_data: dict[str, Any], pod_data: dict[str, Any]) -> None:
         self._save_node_data(node_data)
         self._save_pod_data(pod_data)
-        return

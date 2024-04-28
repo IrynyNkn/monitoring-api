@@ -12,5 +12,5 @@ class IKubeCollectedDataRepository(ABC):
         pass
 
     @abstractmethod
-    def save_kube_data(self, node_data: dict[str, Any], pod_data: dict[str, Any]):
+    def save_kube_data(self, node_data: dict[str, Any], pod_data: dict[str, Any]) -> None:
         pass
