@@ -23,7 +23,7 @@ class PingConfigRepository(IPingConfigRepository):
             host=entity.hostname,
             interval=entity.check_interval,
             owner_id=entity.user_id,
-            status="active"  # placeholder
+            is_paused=entity.is_paused
         )
 
     def save(self, entity: PingConfig) -> str:
@@ -40,12 +40,16 @@ class PingConfigRepository(IPingConfigRepository):
         return str(db_entity.id)
 
     def delete(self, ping_id: str) -> Optional[str]:
-        ping_to_delete = self._session.query(IcmpPingConfigTable).get(ping_id)
-
-        if ping_to_delete:
-            self._session.delete(ping_to_delete)
-            self._session.commit()
-            return ping_id
+        try:
+            ping_to_delete = self._session.query(IcmpPingConfigTable).get(ping_id)
+            if ping_to_delete:
+                self._session.delete(ping_to_delete)
+                self._session.commit()
+                return ping_id
+        except SQLAlchemyError:
+            self._session.rollback()
+        finally:
+            self._session.close()
 
         return None
 
@@ -58,7 +62,7 @@ class PingConfigRepository(IPingConfigRepository):
                 id=str(p.id),
                 host=p.hostname,
                 interval=p.check_interval,
-                status="active"  # placeholder
+                is_paused=p.is_paused
             ).to_dict())
 
         return result
@@ -76,3 +80,15 @@ class PingConfigRepository(IPingConfigRepository):
         finally:
             self._session.close()
 
+    def pause_ping(self, ping_id: str, pause_value: bool) -> Optional[str]:
+        try:
+            old_ping = self._session.query(IcmpPingConfigTable).get(ping_id)
+            if old_ping:
+                old_ping.is_paused = pause_value
+            self._session.commit()
+            return str(old_ping.id)
+        except SQLAlchemyError as e:
+            print(f"An error occurred: {e}")
+            self._session.rollback()
+        finally:
+            self._session.close()

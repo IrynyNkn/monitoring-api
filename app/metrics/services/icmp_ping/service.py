@@ -28,7 +28,7 @@ class PingService:
         if ping_config is not None:
             self._logger.info(f"Performing continuous ping for {ping_config.host} {ping_config.id}")
 
-            if ping_config.status == "active":
+            if not ping_config.is_paused:
                 response = ping(ping_config.host, count=1)
 
                 self._save_ping_response(response, ping_config)
@@ -51,7 +51,7 @@ class PingService:
         ping_config = PingConfig(
             host=host,
             interval=interval,
-            status="active",
+            is_paused=False,
             owner_id=owner_id
         )
 
@@ -82,11 +82,10 @@ class PingService:
         ping_id = self._ping_repository.update_ping(ping_id, interval)
         return ping_id
 
-    def delete_ping(self, ping_id: str) -> Optional[str]:
-        try:
-            uuid.UUID(ping_id, version=4)
-        except ValueError:
-            return None
+    def pause_ping(self, ping_id: str, pause_value: bool):
+        ping_id = self._ping_repository.pause_ping(ping_id, pause_value)
+        return ping_id
 
+    def delete_ping(self, ping_id: str) -> Optional[str]:
         deleted_ping_id = self._ping_repository.delete(ping_id)
         return deleted_ping_id

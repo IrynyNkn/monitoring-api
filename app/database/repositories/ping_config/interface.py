@@ -24,3 +24,7 @@ class IPingConfigRepository(ABC):
     @abstractmethod
     def get_pings_by_user_id(self, user_id: str) -> List[Dict[str, Any]]:
         pass
+
+    @abstractmethod
+    def pause_ping(self, ping_id: str, pause_value: bool) -> Optional[str]:
+        pass

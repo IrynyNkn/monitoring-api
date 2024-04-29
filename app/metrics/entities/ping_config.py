@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class PingConfig:
     host: str
     interval: int
-    status: str = None
+    is_paused: bool
     id: str = None
     owner_id: str = None
 
@@ -13,7 +13,7 @@ class PingConfig:
         return {
             "id": self.id,
             "host": self.host,
-            "status": self.status,
+            "is_paused": self.is_paused,
             "interval": self.interval,
         }
 

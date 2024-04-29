@@ -5,6 +5,10 @@ class UpdatePing(BaseModel):
     interval: int
 
 
+class PausePing(BaseModel):
+    pause_value: bool
+
+
 class CreatePing(BaseModel):
     interval: int
     host: str

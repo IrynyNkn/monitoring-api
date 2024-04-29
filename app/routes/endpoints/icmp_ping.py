@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, Depends, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
-from app.routes.serializers import UpdatePing, CreatePing
+from app.routes.serializers import UpdatePing, CreatePing, PausePing
 from app.routes.auth.get_user import get_current_user
 from app.routes.serializers import User
 
@@ -60,3 +60,14 @@ def cancel_ping(ping_id: str):
         return JSONResponse({"status": "cancelled", "id": ping_id})
 
     raise HTTPException(status.HTTP_400_BAD_REQUEST)
+
+
+@router.put("/pause/{ping_id}", status_code=status.HTTP_204_NO_CONTENT)
+def pause_ping(ping_id, pause_ping_data: PausePing):
+    from app.entrypoint import app
+
+    ping_id = app.ping_service.pause_ping(ping_id, pause_ping_data.pause_value)
+    if ping_id:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR)
