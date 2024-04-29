@@ -4,7 +4,7 @@ from fastapi import Header, HTTPException, status, Request
 
 from app.exceptions import AuthenticationFailedError
 from app.routes.auth.jwt_token_handler import decode_jwt_token
-from app.routes.serializers import User
+from app.metrics.entities.user import User
 from app.settings import AppSettings
 
 PUBLIC_URLS = [
@@ -21,8 +21,8 @@ def get_current_user(request: Request, authorization: str = Header(None)) -> Opt
         raise HTTPException(status.HTTP_401_UNAUTHORIZED)
 
     try:
-        decoded_email = decode_jwt_token(authorization)
+        decoded_user = decode_jwt_token(authorization)
     except AuthenticationFailedError:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED)
 
-    return User(email=decoded_email)
+    return User(id=decoded_user["id"], email=decoded_user["email"])

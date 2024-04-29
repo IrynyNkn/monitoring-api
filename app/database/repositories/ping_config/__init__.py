@@ -1,2 +1,2 @@
 from .interface import IPingConfigRepository
-from .redis_repository import PingConfigRedisRepository
+from .ping_config_repository import PingConfigRepository

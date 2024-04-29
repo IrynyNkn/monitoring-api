@@ -1,18 +1,10 @@
 import uuid
 import datetime
 
-from sqlalchemy import create_engine, String, ForeignKey, DateTime, Integer, Boolean
+from sqlalchemy import String, ForeignKey, DateTime, Integer, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Mapped, mapped_column, relationship
-
-from app.settings import AppSettings
-
-engine = create_engine(
-    AppSettings().postgres_url,
-    connect_args={"check_same_thread": False},
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 Base = declarative_base()
 

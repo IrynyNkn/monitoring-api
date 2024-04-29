@@ -14,6 +14,7 @@ app = (
             prefix=constants.ROUTER_PATH,
         )
     .with_influxdb()
+    .with_postgres()
     .build()
 )
 

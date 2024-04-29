@@ -2,12 +2,11 @@ import logging
 from typing import Any
 
 from celery import Task
-from kubernetes import client, config
 
 from app.database.repositories.kube_collected_data import IKubeCollectedDataRepository
 
 # mocks
-from app.metrics.kube_metrics.mocks import (
+from app.metrics.services.kube_metrics.mocks import (
     namespaces_mock,
     deployments_mock,
     pods_mock,

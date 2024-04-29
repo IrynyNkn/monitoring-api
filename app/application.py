@@ -4,19 +4,21 @@ from celery import Celery, Task
 from fastapi import FastAPI
 from redis import Redis
 from influxdb_client import InfluxDBClient
+from sqlalchemy.orm import sessionmaker, Session
 
-from app.metrics.accounts.user_service import UserService
+from app.database.repositories.user.user_repository import UserRepository
+from app.metrics.services.accounts.user_service import UserService
 from app.settings import AppSettings
 from app.database.repositories import (
     IPingConfigRepository,
-    PingConfigRedisRepository,
+    PingConfigRepository,
     IPingCollectedDataRepository,
     PingCollectedDataRepository,
     IKubeCollectedDataRepository,
     KubeCollectedDataRepository,
 )
-from app.metrics.icmp_ping.service import PingService
-from app.metrics.kube_metrics.service import KubeMetricsService
+from app.metrics.services.icmp_ping import PingService
+from app.metrics.services.kube_metrics import KubeMetricsService
 
 
 class Application:
@@ -25,6 +27,7 @@ class Application:
     celery: Celery
     fastapi: FastAPI
     influxdb_client: InfluxDBClient
+    postgres_session_maker: sessionmaker[Session]
 
     def __init__(
         self,
@@ -32,13 +35,15 @@ class Application:
         redis: Redis,
         celery: Celery,
         fastapi: FastAPI,
-        influxdb_client: InfluxDBClient
+        influxdb_client: InfluxDBClient,
+        postgres_session_maker: sessionmaker[Session],
     ) -> None:
         self.config = config
         self.redis = redis
         self.celery = celery
         self.fastapi = fastapi
         self.influxdb_client = influxdb_client
+        self.postgres_session_maker = postgres_session_maker
 
         self._ping_repository = None
         self._ping_service = None
@@ -54,10 +59,7 @@ class Application:
 
     @property
     def ping_repository(self) -> IPingConfigRepository:
-        if not self._ping_repository:
-            self._ping_repository = PingConfigRedisRepository(self.redis)
-
-        return self._ping_repository
+        return PingConfigRepository(self.postgres_session_maker())
 
     @property
     def ping_service(self) -> PingService:
@@ -93,11 +95,8 @@ class Application:
         return self._kube_metrics_repository
 
     @property
-    def user_repository(self) -> None:
-        if not self._user_repository:
-            self._user_repository = None
-
-        return self._user_repository
+    def user_repository(self) -> UserRepository:
+        return UserRepository(session=self.postgres_session_maker())
 
     @property
     def user_service(self) -> UserService:

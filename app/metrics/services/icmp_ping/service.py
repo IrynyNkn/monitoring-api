@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from icmplib import ping, Host
 from celery import Task
@@ -26,7 +26,7 @@ class PingService:
         ping_config = self._ping_repository.get(ping_id)
 
         if ping_config is not None:
-            self._logger.info(f"Performing continuous ping for {ping_config.id}")
+            self._logger.info(f"Performing continuous ping for {ping_config.host} {ping_config.id}")
 
             if ping_config.status == "active":
                 response = ping(ping_config.host, count=1)
@@ -46,29 +46,30 @@ class PingService:
         self,
         host: str,
         interval: int,
+        owner_id: uuid
     ) -> str:
         ping_config = PingConfig(
-            id=uuid.uuid4().hex,
             host=host,
             interval=interval,
             status="active",
+            owner_id=owner_id
         )
 
-        self._ping_repository.save(ping_config)
+        ping_id = self._ping_repository.save(ping_config)
 
         self._logger.info(f"Ping config for {host} saved ...")
 
-        self._ping_task.delay(ping_config.id)
+        self._ping_task.delay(ping_id)
 
-        return ping_config.id
+        return ping_id
 
     def get_ping_metrics(self, ping_id: str) -> Dict[str, Any]:
         ping_metrics = self._metrics_repository.get_ping_metrics(ping_id)
         return ping_metrics
 
-    # def get_pings(self):
-        # pings = self._metrics_repository.get_user_pings()
-        # return pings
+    def get_pings(self, user_id: str) -> List[Dict[str, Any]]:
+        pings = self._ping_repository.get_pings_by_user_id(user_id)
+        return pings
 
     def _save_ping_response(self, response: Host, config: PingConfig) -> None:
         ping_data = ExtendedPingConfig(

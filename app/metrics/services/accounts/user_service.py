@@ -1,12 +1,13 @@
 import bcrypt
 
+from app.database.repositories.user.user_repository import UserRepository
 from app.exceptions import LoginFailedError
 from app.routes.auth.jwt_token_handler import create_jwt_token
 from app.routes.serializers import RegisterUserData, LoginUserData
 
 
 class UserService:
-    def __init__(self, user_repository) -> None:
+    def __init__(self, user_repository: UserRepository) -> None:
         self._user_repository = user_repository
 
     def login(self, user_data: LoginUserData) -> str:
@@ -18,13 +19,13 @@ class UserService:
         if not self._validate_password_hash(user_data.password, user.password_hash):
             raise LoginFailedError()
 
-        return user.token
+        return create_jwt_token(user)
 
     def register(self, user_data: RegisterUserData) -> str:
         password_hash = self._hash_password(user_data.password)
         created_user = self._user_repository.create_user(user_data.email, password_hash)
 
-        return create_jwt_token(created_user.username)
+        return create_jwt_token(created_user)
 
     def _hash_password(self, password: str) -> str:
         salt = bcrypt.gensalt()

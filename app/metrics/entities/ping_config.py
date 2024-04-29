@@ -3,10 +3,11 @@ from dataclasses import dataclass
 
 @dataclass
 class PingConfig:
-    id: str
     host: str
-    status: str
     interval: int
+    status: str = None
+    id: str = None
+    owner_id: str = None
 
     def to_dict(self) -> dict:
         return {
@@ -19,7 +20,7 @@ class PingConfig:
 
 @dataclass
 class ExtendedPingConfig(PingConfig):
-    round_trip_time: float
+    round_trip_time: float = None
 
     def to_dict(self) -> dict:
         base_dict = super().to_dict()

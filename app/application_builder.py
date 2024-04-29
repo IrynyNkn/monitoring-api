@@ -5,6 +5,8 @@ from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from redis import Redis
 from influxdb_client import InfluxDBClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 from app.application import Application
 from app.settings import AppSettings
@@ -18,6 +20,7 @@ class ApplicationBuilder:
         self._celery_app = None
         self._redis = None
         self._influxdb_client = None
+        self._postgres_session_maker = None
 
     @classmethod
     def from_config(cls, config: AppSettings) -> "ApplicationBuilder":
@@ -76,6 +79,13 @@ class ApplicationBuilder:
 
         return self
 
+    def with_postgres(self, override_with: None = None) -> Self:
+        engine = create_engine(AppSettings().postgres_url)
+        session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        self._postgres_session_maker = scoped_session(session_factory)
+
+        return self
+
     def build(self) -> Application:
         self._validate_application()
 
@@ -84,7 +94,8 @@ class ApplicationBuilder:
             fastapi=self._fastapi_app,
             celery=self._celery_app,
             redis=self._redis,
-            influxdb_client=self._influxdb_client
+            influxdb_client=self._influxdb_client,
+            postgres_session_maker=self._postgres_session_maker,
         )
 
     def _validate_application(self) -> None:
