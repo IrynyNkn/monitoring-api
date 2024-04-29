@@ -1,6 +1,7 @@
 from typing import Optional, List, Dict, Any
 
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.metrics.entities.ping_config import PingConfig
 from app.database.repositories.ping_config.interface import IPingConfigRepository
@@ -61,4 +62,17 @@ class PingConfigRepository(IPingConfigRepository):
             ).to_dict())
 
         return result
+
+    def update_ping(self, ping_id: str, interval: int) -> Optional[str]:
+        try:
+            old_ping = self._session.query(IcmpPingConfigTable).get(ping_id)
+            if old_ping:
+                old_ping.check_interval = int(interval)
+            self._session.commit()
+            return str(old_ping.id)
+        except SQLAlchemyError as e:
+            print(f"An error occurred: {e}")
+            self._session.rollback()
+        finally:
+            self._session.close()
 

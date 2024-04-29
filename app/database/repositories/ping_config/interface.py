@@ -18,5 +18,9 @@ class IPingConfigRepository(ABC):
         pass
 
     @abstractmethod
+    def update_ping(self, ping_id: str, interval: int) -> Optional[str]:
+        pass
+
+    @abstractmethod
     def get_pings_by_user_id(self, user_id: str) -> List[Dict[str, Any]]:
         pass

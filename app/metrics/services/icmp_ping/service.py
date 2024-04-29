@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from icmplib import ping, Host
 from celery import Task
@@ -77,3 +77,16 @@ class PingService:
             round_trip_time=response.avg_rtt
         )
         self._metrics_repository.save_ping_data(response, ping_data)
+
+    def update_ping(self, ping_id: str, interval: int):
+        ping_id = self._ping_repository.update_ping(ping_id, interval)
+        return ping_id
+
+    def delete_ping(self, ping_id: str) -> Optional[str]:
+        try:
+            uuid.UUID(ping_id, version=4)
+        except ValueError:
+            return None
+
+        deleted_ping_id = self._ping_repository.delete(ping_id)
+        return deleted_ping_id

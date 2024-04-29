@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from app.routes.serializers import UpdatePing, CreatePing
@@ -40,17 +40,23 @@ def create_ping(create_ping_data: CreatePing, current_user: User = Depends(get_c
 
 
 @router.put("/{ping_id}", status_code=status.HTTP_200_OK)
-def update_ping(update_ping_data: UpdatePing):
-    pass
+def update_ping(ping_id, upd_ping_data: UpdatePing):
+    from app.entrypoint import app
+
+    ping_id = app.ping_service.update_ping(ping_id, upd_ping_data.interval)
+    if ping_id:
+        return JSONResponse({"status": "updated", "id": ping_id})
+
+    raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @router.delete("/{ping_id}", status_code=status.HTTP_204_NO_CONTENT)
 def cancel_ping(ping_id: str):
     from app.entrypoint import app
 
-    deleted_ping_id = app.ping_repository.delete(ping_id)
+    deleted_ping_id = app.ping_service.delete_ping(ping_id)
 
     if deleted_ping_id:
         return JSONResponse({"status": "cancelled", "id": ping_id})
 
-    return JSONResponse(status.HTTP_400_BAD_REQUEST)
+    raise HTTPException(status.HTTP_400_BAD_REQUEST)
