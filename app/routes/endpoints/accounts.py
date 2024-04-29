@@ -18,14 +18,14 @@ async def register(user_data: RegisterUserData):
     from app.entrypoint import app
 
     try:
-        token = app.user_service.register(user_data)
+        result = app.user_service.register(user_data)
     except UsernameAlreadyTakenError:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"errors": "User with this email already exists in the system"}
         )
 
-    return JSONResponse(status_code=status.HTTP_201_CREATED, content={"token": token})
+    return JSONResponse(status_code=status.HTTP_201_CREATED, content=result)
 
 
 @router.post("/login")
@@ -33,11 +33,11 @@ def login(user_data: LoginUserData):
     from app.entrypoint import app
 
     try:
-        token = app.user_service.login(user_data)
+        result = app.user_service.login(user_data)
     except LoginFailedError:
         return JSONResponse(
             content={"errors": "Username and/or password are incorrect"},
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"token": token})
+    return JSONResponse(status_code=status.HTTP_200_OK, content=result)
