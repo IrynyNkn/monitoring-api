@@ -8,6 +8,7 @@ class PingConfig:
     is_paused: bool
     id: str = None
     owner_id: str = None
+    created_at: str = None
 
     def to_dict(self) -> dict:
         return {
@@ -15,6 +16,7 @@ class PingConfig:
             "host": self.host,
             "is_paused": self.is_paused,
             "interval": self.interval,
+            "created_at": str(self.created_at)
         }
 
 

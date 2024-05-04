@@ -62,7 +62,8 @@ class PingConfigRepository(IPingConfigRepository):
                 id=str(p.id),
                 host=p.hostname,
                 interval=p.check_interval,
-                is_paused=p.is_paused
+                is_paused=p.is_paused,
+                created_at=p.created_at
             ).to_dict())
 
         return result
