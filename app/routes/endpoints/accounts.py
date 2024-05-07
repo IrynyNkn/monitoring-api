@@ -8,6 +8,15 @@ from app.routes.serializers import User, LoginUserData, RegisterUserData
 router = APIRouter(prefix="/auth")
 
 
+@router.get("/test-notifier")
+async def test_notifier():
+    from app.entrypoint import app
+
+    app.notification_service.send_email("Monitoring alert", "Notification about downtime", "iryninak03@gmail.com")
+
+    return JSONResponse(status_code=status.HTTP_201_CREATED, content={"success": "true"})
+
+
 @router.get("/me")
 async def get_user(current_user: User = Depends(get_current_user)):
     return JSONResponse(status_code=status.HTTP_200_OK, content={"email": current_user.email})

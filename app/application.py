@@ -19,6 +19,7 @@ from app.database.repositories import (
 )
 from app.metrics.services.icmp_ping import PingService
 from app.metrics.services.kube_metrics import KubeMetricsService
+from app.metrics.services.notifications import EmailNotifier
 
 
 class Application:
@@ -56,6 +57,8 @@ class Application:
 
         self._user_service = None
         self._user_repository = None
+
+        self._notification_service = None
 
     @property
     def ping_repository(self) -> IPingConfigRepository:
@@ -104,3 +107,10 @@ class Application:
             self._user_service = UserService(self.user_repository)
 
         return self._user_service
+
+    @property
+    def notification_service(self) -> EmailNotifier:
+        if not self._notification_service:
+            self._notification_service = EmailNotifier(self.config.smtp_settings)
+
+        return self._notification_service

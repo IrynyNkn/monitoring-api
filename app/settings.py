@@ -2,6 +2,13 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
+class SMTPSettings(BaseSettings):
+    host: str = Field(..., alias="SMTP_HOST")
+    port: int = Field(..., alias="SMTP_PORT")
+    username: str = Field(..., alias="SMTP_USERNAME")
+    password: str = Field(..., alias="SMTP_PASSWORD")
+
+
 class AppSettings(BaseSettings):
     celery_broker_url: str = Field(..., alias="CELERY_BROKER_URL")
     celery_result_backend: str = Field(..., alias="CELERY_RESULT_BACKEND")
@@ -22,3 +29,5 @@ class AppSettings(BaseSettings):
     secret_key: str = Field(..., alias="SECRET_KEY")
     auth_enabled: bool = Field(True, alias="AUTH_ENABLED")
     token_life_minutes: int = Field(720, alias="TOKEN_LIFE_MINUTES")  # in minutes
+
+    smtp_settings: SMTPSettings = SMTPSettings()
