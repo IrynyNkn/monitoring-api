@@ -112,3 +112,24 @@ class KubeCollectedDataRepository(IKubeCollectedDataRepository):
         metrics = json.loads(pods_metrics.to_json())
 
         return {"pod_metrics": metrics}
+
+    def query_container_data_by_name(self, container_name: str):
+        print("container_name", container_name)
+        query = f'''
+        from(bucket: "{self._settings.influxdb_bucket}")
+          |> range(start: -12h)
+          |> filter(fn: (r) => r._measurement == "kube_pod_metrics" and r.container == "{container_name}")
+          |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+          |> map(fn: (r) => ({{
+                time: int(v: uint(v: r._time)) / 1000000,
+                pod_name: r.name,
+                cpu: r.cpu,
+                memory: r.memory,
+                cpu_unit: r.cpu_unit,
+                memory_unit: r.memory_unit
+            }}))
+        '''
+        container_metrics: TableList = self._query_api.query(org=self._settings.influxdb_org, query=query)
+        metrics = json.loads(container_metrics.to_json())
+
+        return {"container_metrics": metrics}

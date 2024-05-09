@@ -24,7 +24,7 @@ def get_nodes():
 def get_pods():
     from app.entrypoint import app
 
-    response = app.kube_metrics_service.get_mocked_nodes()
+    response = app.kube_metrics_service.get_mocked_pods()
     return JSONResponse({"pods": response})
 
 
@@ -50,3 +50,11 @@ def get_pods_metrics():
 
     response = app.kube_metrics_service.get_pod_metrics()
     return JSONResponse({"pod-metrics": response})
+
+
+@router.get("/container-metrics/{name}", status_code=status.HTTP_200_OK)
+def get_container_metrics(name: str):
+    from app.entrypoint import app
+
+    response = app.kube_metrics_service.get_container_metrics(name)
+    return JSONResponse(response)

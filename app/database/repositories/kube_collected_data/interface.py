@@ -22,3 +22,7 @@ class IKubeCollectedDataRepository(ABC):
     @abstractmethod
     def query_pods_data(self) -> Dict[str, Any]:
         pass
+
+    @abstractmethod
+    def query_container_data_by_name(self, container_name: str) -> Dict[str, Any]:
+        pass

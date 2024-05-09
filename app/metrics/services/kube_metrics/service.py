@@ -62,7 +62,7 @@ class KubeMetricsService:
 
         self.save_kube_dynamic_metrics(node_metrics, pod_metrics)
 
-        self._kube_metrics_collection_task.apply_async(countdown=240, expires=240.01)
+        self._kube_metrics_collection_task.apply_async(countdown=60, expires=60.01)
         return node_metrics, pod_metrics
 
     def save_kube_dynamic_metrics(self, node_metrics: dict[str, Any], pod_metrics: dict[str, Any]) -> None:
@@ -74,6 +74,10 @@ class KubeMetricsService:
 
     def get_pod_metrics(self):
         metrics = self._kube_repository.query_pods_data()
+        return metrics
+
+    def get_container_metrics(self, container_name: str):
+        metrics = self._kube_repository.query_container_data_by_name(container_name)
         return metrics
 
     # def get_node_metrics(self):
