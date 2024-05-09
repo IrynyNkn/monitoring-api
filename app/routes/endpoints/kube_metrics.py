@@ -37,7 +37,7 @@ def get_deployments():
 
 
 @router.get("/node-metrics", status_code=status.HTTP_200_OK)
-def get_deployments():
+def get_nodes_metrics():
     from app.entrypoint import app
 
     response = app.kube_metrics_service.get_node_metrics()
@@ -45,7 +45,7 @@ def get_deployments():
 
 
 @router.get("/pod-metrics", status_code=status.HTTP_200_OK)
-def get_deployments():
+def get_pods_metrics():
     from app.entrypoint import app
 
     response = app.kube_metrics_service.get_pod_metrics()

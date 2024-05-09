@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Dict
 
 
 class IKubeCollectedDataRepository(ABC):
@@ -13,4 +13,12 @@ class IKubeCollectedDataRepository(ABC):
 
     @abstractmethod
     def save_kube_data(self, node_data: dict[str, Any], pod_data: dict[str, Any]) -> None:
+        pass
+
+    @abstractmethod
+    def query_nodes_data(self) -> Dict[str, Any]:
+        pass
+
+    @abstractmethod
+    def query_pods_data(self) -> Dict[str, Any]:
         pass

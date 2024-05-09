@@ -38,7 +38,6 @@ class KubeMetricsService:
         #     plural="nodes"
         # )
 
-
     def get_mocked_namespaces(self):
         return namespaces_mock
 
@@ -51,15 +50,15 @@ class KubeMetricsService:
     def get_mocked_nodes(self):
         return nodes_mock
 
-    def get_mocked_node_metrics(self):
+    def _retrieve_mocked_node_metrics(self):
         return nodes_dynamic_mocked_metrics
 
-    def get_mocked_pod_metrics(self):
+    def _retrieve_mocked_pod_metrics(self):
         return pods_dynamic_mocked_metrics
 
     def retrieve_kube_dynamic_metrics(self):
-        node_metrics = self.get_mocked_node_metrics()
-        pod_metrics = self.get_mocked_pod_metrics()
+        node_metrics = self._retrieve_mocked_node_metrics()
+        pod_metrics = self._retrieve_mocked_pod_metrics()
 
         self.save_kube_dynamic_metrics(node_metrics, pod_metrics)
 
@@ -68,6 +67,14 @@ class KubeMetricsService:
 
     def save_kube_dynamic_metrics(self, node_metrics: dict[str, Any], pod_metrics: dict[str, Any]) -> None:
         self._kube_repository.save_kube_data(node_metrics, pod_metrics)
+
+    def get_node_metrics(self):
+        metrics = self._kube_repository.query_nodes_data()
+        return metrics
+
+    def get_pod_metrics(self):
+        metrics = self._kube_repository.query_pods_data()
+        return metrics
 
     # def get_node_metrics(self):
     #     node_metrics = self._custom_objects_api.list_cluster_custom_object(
