@@ -7,6 +7,7 @@ from influxdb_client import InfluxDBClient
 from sqlalchemy.orm import sessionmaker, Session
 
 from app.database.repositories.user.user_repository import UserRepository
+from app.metrics.services import AlertsService
 from app.metrics.services.accounts.user_service import UserService
 from app.settings import AppSettings
 from app.database.repositories import (
@@ -16,6 +17,8 @@ from app.database.repositories import (
     PingCollectedDataRepository,
     IKubeCollectedDataRepository,
     KubeCollectedDataRepository,
+    AlertRepository,
+    IAlertsRepository,
 )
 from app.metrics.services.icmp_ping import PingService
 from app.metrics.services.kube_metrics import KubeMetricsService
@@ -59,6 +62,9 @@ class Application:
         self._user_repository = None
 
         self._notification_service = None
+
+        self._alerts_crud_service = None
+        self._alerts_repository = None
 
     @property
     def ping_repository(self) -> IPingConfigRepository:
@@ -114,3 +120,14 @@ class Application:
             self._notification_service = EmailNotifier(self.config.smtp_settings)
 
         return self._notification_service
+
+    @property
+    def alerts_repository(self) -> AlertRepository:
+        return AlertRepository(session=self.postgres_session_maker())
+
+    @property
+    def alerts_crud_service(self) -> AlertsService:
+        if not self._alerts_crud_service:
+            self._alerts_crud_service = AlertsService(self.alerts_repository)
+
+        return self._alerts_crud_service

@@ -23,6 +23,7 @@ class User(Base):
     icmp_pings = relationship("IcmpPingConfig", back_populates="owner")
     http_pings = relationship("HttpPingConfig", back_populates="owner")
     kube_metrics = relationship("KubeMetricsConfig", back_populates="owner")
+    alerts = relationship("Alert", back_populates="owner")
 
 
 class IcmpPingConfig(Base):
@@ -82,3 +83,22 @@ class KubeMetricsConfig(Base):
     check_interval: Mapped[int] = mapped_column(Integer, nullable=False)
 
     owner = relationship("User", back_populates="kube_metrics")
+
+
+class Alert(Base):
+    __tablename__ = "alert"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("user.id"))
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    for_: Mapped[int] = mapped_column(Integer, nullable=False)
+    repeat_alert: Mapped[int] = mapped_column(Integer, nullable=False)
+    alert_group: Mapped[str] = mapped_column(String(255), nullable=False)
+    alert_type: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    owner = relationship("User", back_populates="alerts")

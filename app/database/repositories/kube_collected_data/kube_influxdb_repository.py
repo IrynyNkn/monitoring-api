@@ -36,6 +36,7 @@ class KubeCollectedDataRepository(IKubeCollectedDataRepository):
                 )
 
                 self._writer.write(bucket=self._settings.influxdb_bucket, org=self._settings.influxdb_org, record=p)
+            # print("saved node data to influxdb")
         except Exception as exc:
             self._logger.error("Caught error on saving node metrics to db", exc)
 
@@ -62,6 +63,7 @@ class KubeCollectedDataRepository(IKubeCollectedDataRepository):
                         org=self._settings.influxdb_org,
                         record=p,
                     )
+            print("saved pod data to influxdb")
         except Exception as exc:
             self._logger.error("Caught error on saving pod metrics to db", exc)
 

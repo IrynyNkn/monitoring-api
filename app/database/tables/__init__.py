@@ -1,1 +1,1 @@
-from .tables import Base, User, IcmpPingConfig, HttpPingConfig, KubeMetricsConfig
+from .tables import Base, User, IcmpPingConfig, HttpPingConfig, KubeMetricsConfig, Alert

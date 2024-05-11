@@ -12,7 +12,7 @@ def continuous_ping(ping_id: str) -> None:
 def kube_metrics_collecting() -> None:
     try:
         metrics = app.kube_metrics_service.retrieve_kube_dynamic_metrics()
-        # print("Collected metrics:")
+        # print("Collected kube metrics")
         # print(metrics)
     except Exception as exc:
         print("Exception in celery task kube_metrics_collection", exc)
