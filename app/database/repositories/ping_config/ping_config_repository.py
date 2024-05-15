@@ -76,7 +76,7 @@ class PingConfigRepository(IPingConfigRepository):
             self._session.commit()
             return str(old_ping.id)
         except SQLAlchemyError as e:
-            print(f"An error occurred: {e}")
+            print(f"An error occurred update_ping: {e}")
             self._session.rollback()
         finally:
             self._session.close()

@@ -18,11 +18,12 @@ from app.database.repositories import (
     IKubeCollectedDataRepository,
     KubeCollectedDataRepository,
     AlertRepository,
-    IAlertsRepository,
+    HealthCheckConfigRepo,
 )
 from app.metrics.services.icmp_ping import PingService
 from app.metrics.services.kube_metrics import KubeMetricsService
 from app.metrics.services.notifications import EmailNotifier
+from app.metrics.services.health_check import HealthCheckService
 
 
 class Application:
@@ -65,6 +66,9 @@ class Application:
 
         self._alerts_crud_service = None
         self._alerts_repository = None
+
+        self._health_check_repository = None
+        self._health_check_service = None
 
     @property
     def ping_repository(self) -> IPingConfigRepository:
@@ -131,3 +135,15 @@ class Application:
             self._alerts_crud_service = AlertsService(self.alerts_repository)
 
         return self._alerts_crud_service
+
+    @property
+    def health_check_repository(self) -> HealthCheckConfigRepo:
+        return HealthCheckConfigRepo(self.postgres_session_maker())
+
+    @property
+    def health_check_service(self) -> HealthCheckService:
+        if not self._health_check_service:
+            # from .metrics.celery_tasks import continuous_ping
+            self._health_check_service = HealthCheckService(self.health_check_repository)
+
+        return self._health_check_service

@@ -2,6 +2,7 @@ import logging
 from typing import Any
 
 from celery import Task
+# from kubernetes import config
 
 from app.database.repositories.kube_collected_data import IKubeCollectedDataRepository
 

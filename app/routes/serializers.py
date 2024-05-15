@@ -16,6 +16,11 @@ class CreatePing(BaseModel):
     host: str
 
 
+class CreateHealthCheck(BaseModel):
+    interval: int
+    endpoint_url: str
+
+
 class User(BaseModel):
     email: str
 

@@ -22,7 +22,7 @@ class User(Base):
 
     icmp_pings = relationship("IcmpPingConfig", back_populates="owner")
     http_pings = relationship("HttpPingConfig", back_populates="owner")
-    kube_metrics = relationship("KubeMetricsConfig", back_populates="owner")
+    kube_metrics = relationship("KubeMetricsConfig", back_populates="owner", uselist=False)
     alerts = relationship("Alert", back_populates="owner")
 
 
@@ -82,7 +82,7 @@ class KubeMetricsConfig(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("user.id"))
     check_interval: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    owner = relationship("User", back_populates="kube_metrics")
+    owner = relationship("User", back_populates="kube_metrics", uselist=False)
 
 
 class Alert(Base):
