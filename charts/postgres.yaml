@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: postgres
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - image: postgres:16.3
+          env:
+            - name: POSTGRES_HOST
+              value: postgres
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: metrics-api
+            - name: POSTGRES_USER
+              value: admin
+            - name: POSTGRES_PASSWORD
+              value: admin-ira-pw
+          name: postgres
+          ports:
+            - containerPort: 5432
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: postgres
+  name: postgres
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    app: postgres
