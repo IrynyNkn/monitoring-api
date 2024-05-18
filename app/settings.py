@@ -30,4 +30,6 @@ class AppSettings(BaseSettings):
     auth_enabled: bool = Field(True, alias="AUTH_ENABLED")
     token_life_minutes: int = Field(720, alias="TOKEN_LIFE_MINUTES")  # in minutes
 
+    gather_kube_metrics: bool = Field(True, alias="GATHER_KUBE_METRICS")
+
     smtp_settings: SMTPSettings = SMTPSettings()

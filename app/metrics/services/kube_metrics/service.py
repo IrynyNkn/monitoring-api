@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 from celery import Task
-# from kubernetes import config
+from kubernetes import config, client
 
 from app.database.repositories.kube_collected_data import IKubeCollectedDataRepository
 
@@ -29,38 +29,47 @@ class KubeMetricsService:
         self._logger = logging.getLogger(__name__)
 
         # TODO: uncomment in production kubernetes cluster
-        # config.load_incluster_config()
-        # self._core_api = client.CoreV1Api()
-        # self._apps_api = client.AppsV1Api()
-        # self._custom_objects_api = client.CustomObjectsApi()
-        # self._node_metrics = self._custom_objects_api.list_cluster_custom_object(
-        #     group="metrics.k8s.io",
-        #     version="v1beta1",
-        #     plural="nodes"
-        # )
+        config.load_incluster_config()
+        self._core_api = client.CoreV1Api()
+        self._apps_api = client.AppsV1Api()
+        self._custom_objects_api = client.CustomObjectsApi()
+        self._node_metrics = self._custom_objects_api.list_cluster_custom_object(
+            group="metrics.k8s.io",
+            version="v1beta1",
+            plural="nodes"
+        )
 
-    def get_mocked_namespaces(self):
-        return namespaces_mock
+    # METRICS COLLECTION START
+    def _retrieve_node_metrics(self):
+        if False:
+            return nodes_dynamic_mocked_metrics
 
-    def get_mocked_deployments(self):
-        return deployments_mock
+        node_metrics = self._custom_objects_api.list_cluster_custom_object(
+            group="metrics.k8s.io",
+            version="v1beta1",
+            plural="nodes"
+        )
+        print("Node Metrics:")
+        print(node_metrics)
+        return node_metrics
 
-    def get_mocked_pods(self):
-        return pods_mock
+    def _retrieve_pod_metrics(self):
+        if False:
+            return pods_dynamic_mocked_metrics
 
-    def get_mocked_nodes(self):
-        return nodes_mock
-
-    def _retrieve_mocked_node_metrics(self):
-        return nodes_dynamic_mocked_metrics
-
-    def _retrieve_mocked_pod_metrics(self):
-        return pods_dynamic_mocked_metrics
+        pod_metrics = self._custom_objects_api.list_namespaced_custom_object(
+            group="metrics.k8s.io",
+            version="v1beta1",
+            plural="pods",
+            namespace="default"
+        )
+        print("Pod Metrics:")
+        print(pod_metrics)
+        return pod_metrics
 
     def retrieve_kube_dynamic_metrics(self):
-        node_metrics = self._retrieve_mocked_node_metrics()
-        pod_metrics = self._retrieve_mocked_pod_metrics()
-
+        node_metrics = self._retrieve_node_metrics()
+        pod_metrics = self._retrieve_pod_metrics()
         self.save_kube_dynamic_metrics(node_metrics, pod_metrics)
 
         self._kube_metrics_collection_task.apply_async(countdown=60, expires=60.01)
@@ -68,120 +77,129 @@ class KubeMetricsService:
 
     def save_kube_dynamic_metrics(self, node_metrics: dict[str, Any], pod_metrics: dict[str, Any]) -> None:
         self._kube_repository.save_kube_data(node_metrics, pod_metrics)
+    # METRICS COLLECTION END
 
-    def get_node_metrics(self):
+    def get_node_metrics_from_db(self):
         metrics = self._kube_repository.query_nodes_data()
         return metrics
 
-    def get_pod_metrics(self):
+    def get_pod_metrics_from_db(self):
         metrics = self._kube_repository.query_pods_data()
         return metrics
 
-    def get_container_metrics(self, container_name: str):
+    def get_container_metrics_from_db(self, container_name: str):
         metrics = self._kube_repository.query_container_data_by_name(container_name)
         return metrics
 
-    # def get_node_metrics(self):
-    #     node_metrics = self._custom_objects_api.list_cluster_custom_object(
-    #         group="metrics.k8s.io",
-    #         version="v1beta1",
-    #         plural="nodes"
-    #     )
-    #     print("Node Metrics:")
-    #     print(node_metrics)
-    #     return node_metrics
+    # FROM KUBERNETES API
+    def get_namespaces(self):
+        if False:
+            return namespaces_mock
 
-    # def get_pod_metrics(self):
-    #     pod_metrics = self._custom_objects_api.list_namespaced_custom_object(
-    #         group="metrics.k8s.io",
-    #         version="v1beta1",
-    #         plural="pods",
-    #         namespace="default"
-    #     )
-    #     print("Pod Metrics:")
-    #     print(pod_metrics)
-    #     return pod_metrics
+        namespaces = self._core_api.list_namespace()
+        result = []
+        for ns in namespaces.items:
+            ns_data = {
+                "name": ns.metadata.name,
+                "status": ns.status.phase,
+                "created_at": ns.metadata.creation_timestamp.isoformat(),
+                "labels": ns.metadata.labels,
+                "annotations": ns.metadata.annotations
+            }
+            result.append(ns_data)
+        return result
 
-    # def get_namespaces(self):
-        # namespaces = self._core_api.list_namespace()
-        # result = []
-        # for ns in namespaces.items:
-        #     ns_data = {
-        #         "name": ns.metadata.name,
-        #         "status": ns.status.phase,
-        #         "created_at": ns.metadata.creation_timestamp,
-        #         "labels": ns.metadata.labels,
-        #         "annotations": ns.metadata.annotations
-        #     }
-        #     result.append(ns_data)
-        # return result
+    def get_deployments(self):
+        if False:
+            return deployments_mock
 
-    # def get_deployments(self):
-        # deployments = self._apps_api.list_deployment_for_all_namespaces()
-        # result = []
-        # for deploy in deployments.items:
-        #     deploy_data = {
-        #         "name": deploy.metadata.name,
-        #         "namespace": deploy.metadata.namespace,
-        #         "replicas": deploy.spec.replicas,
-        #         "available_replicas": deploy.status.available_replicas,
-        #         "unavailable_replicas": deploy.status.unavailable_replicas,
-        #         "labels": deploy.metadata.labels,
-        #         "created_at": deploy.metadata.creation_timestamp,
-        #         "conditions": [{"type": cond.type, "status": cond.status, "reason": cond.reason} for cond in
-        #                        deploy.status.conditions],
-        #         "selector": deploy.spec.selector.match_labels
-        #     }
-        #     result.append(deploy_data)
-        # return result
+        deployments = self._apps_api.list_deployment_for_all_namespaces()
+        result = []
+        for deploy in deployments.items:
+            deploy_data = {
+                "name": deploy.metadata.name,
+                "namespace": deploy.metadata.namespace,
+                "replicas": deploy.spec.replicas,
+                "available_replicas": deploy.status.available_replicas,
+                "unavailable_replicas": deploy.status.unavailable_replicas,
+                "labels": deploy.metadata.labels,
+                "created_at": deploy.metadata.creation_timestamp.isoformat(),
+                "conditions": [{"type": cond.type, "status": cond.status, "reason": cond.reason} for cond in
+                               deploy.status.conditions],
+                "selector": deploy.spec.selector.match_labels
+            }
+            result.append(deploy_data)
+        return result
 
-    # def get_pods(self):
-        # pods = self._core_api.list_pod_for_all_namespaces()
-        # result = []
-        # for pod in pods.items:
-        #     pod_data = {
-        #         "name": pod.metadata.name,
-        #         "namespace": pod.metadata.namespace,
-        #         "status": pod.status.phase,
-        #         "node_name": pod.spec.node_name,
-        #         "created_at": pod.metadata.creation_timestamp,
-        #         "ip": pod.status.pod_ip,
-        #         "containers": [
-        #             {
-        #                 "name": container.name,
-        #                 "image": container.image,
-        #                 "ready": container.ready,
-        #                 "restart_count": container.restart_count,
-        #                 "state": container.state.to_dict()
-        #             } for container in pod.status.container_statuses
-        #         ]
-        #     }
-        #     result.append(pod_data)
-        # return result
+    def get_pods(self):
+        if False:
+            return pods_mock
 
-    # def get_nodes(self):
-        # nodes = self._core_api.list_node()
-        # result = []
-        # for node in nodes.items:
-        #     conditions = {condition.type: condition.status for condition in node.status.conditions}
-        #     node_data = {
-        #         "name": node.metadata.name,
-        #         "status": conditions,
-        #         "roles": [label for label, value in node.metadata.labels.items() if
-        #                   value == "node-role.kubernetes.io/master"],
-        #         "ip_address": node.status.addresses[0].address,
-        #         "os_arch": node.status.node_info.architecture,
-        #         "os_image": node.status.node_info.os_image,
-        #         "cpu_capacity": node.status.capacity.get("cpu"),
-        #         "memory_capacity": node.status.capacity.get("memory"),
-        #         "allocatable_cpu": node.status.allocatable.get("cpu"),
-        #         "allocatable_memory": node.status.allocatable.get("memory"),
-        #         "created_at": node.metadata.creation_timestamp,
-        #         "taints": [{"key": taint.key, "effect": taint.effect, "value": taint.value} for taint in
-        #                    node.spec.taints] if node.spec.taints else []
-        #     }
-        #     result.append(node_data)
-        # return result
+        pods = self._core_api.list_pod_for_all_namespaces()
+        result = []
+        for pod in pods.items:
+            pod_data = {
+                "name": pod.metadata.name,
+                "namespace": pod.metadata.namespace,
+                "status": pod.status.phase,
+                "node_name": pod.spec.node_name,
+                "created_at": pod.metadata.creation_timestamp.isoformat(),
+                "ip": pod.status.pod_ip,
+                "containers": [
+                    {
+                        "name": container.name,
+                        "image": container.image,
+                        "ready": container.ready,
+                        "restart_count": container.restart_count,
+                        "state": {
+                            "running": {
+                                "started_at": container.state.running.started_at.isoformat()
+                            } if container.state.running is not None else None,
+                            "terminated": {
+                                "started_at": container.state.terminated.started_at.isoformat(),
+                                "finished_at": container.state.terminated.finished_at.isoformat(),
+                                "reason": container.state.terminated.reason,
+                                "message": container.state.terminated.message,
+                                "container_id": container.state.terminated.container_id
+                            } if container.state.terminated is not None else None,
+                            "waiting": {
+                                "message": container.state.waiting.message,
+                                "reason": container.state.waiting.reason,
+                            } if container.state.waiting is not None else None
+                        }
+                    } for container in pod.status.container_statuses
+                ]
+            }
+            result.append(pod_data)
+
+        return result
+
+    def get_nodes(self):
+        if False:
+            return nodes_mock
+
+        nodes = self._core_api.list_node()
+        result = []
+        for node in nodes.items:
+            conditions = {condition.type: condition.status for condition in node.status.conditions}
+            node_data = {
+                "name": node.metadata.name,
+                "status": conditions,
+                "roles": [label for label, value in node.metadata.labels.items() if
+                          value == "node-role.kubernetes.io/master"],
+                "ip_address": node.status.addresses[0].address,
+                "os_arch": node.status.node_info.architecture,
+                "os_image": node.status.node_info.os_image,
+                "cpu_capacity": node.status.capacity.get("cpu"),
+                "memory_capacity": node.status.capacity.get("memory"),
+                "allocatable_cpu": node.status.allocatable.get("cpu"),
+                "allocatable_memory": node.status.allocatable.get("memory"),
+                "created_at": node.metadata.creation_timestamp.isoformat(),
+                "taints": [{"key": taint.key, "effect": taint.effect, "value": taint.value} for taint in
+                           node.spec.taints] if node.spec.taints else []
+            }
+            result.append(node_data)
+        return result
 
     def save_namespaces_data(self):
         pass

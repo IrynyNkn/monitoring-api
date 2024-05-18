@@ -4,8 +4,11 @@ metadata:
   name: cluster-monitor
 rules:
 - apiGroups: [""]
-  resources: ["namespaces", "pods", "nodes"]
+  resources: ["namespaces", "pods", "nodes", "services"]
   verbs: ["get", "list", "watch"]
+- apiGroups: [ "apps" ]
+  resources: [ "deployments" ]
+  verbs: [ "get", "list", "watch" ]
 - apiGroups: ["metrics.k8s.io"]
   resources: ["nodes"]
   verbs: ["get", "list", "watch"]

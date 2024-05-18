@@ -8,7 +8,7 @@ router = APIRouter(prefix="/kube-metrics")
 def get_namespaces():
     from app.entrypoint import app
 
-    response = app.kube_metrics_service.get_mocked_namespaces()
+    response = app.kube_metrics_service.get_namespaces()
     return JSONResponse({"namespaces": response})
 
 
@@ -16,7 +16,7 @@ def get_namespaces():
 def get_nodes():
     from app.entrypoint import app
 
-    response = app.kube_metrics_service.get_mocked_nodes()
+    response = app.kube_metrics_service.get_nodes()
     return JSONResponse({"nodes": response})
 
 
@@ -24,7 +24,7 @@ def get_nodes():
 def get_pods():
     from app.entrypoint import app
 
-    response = app.kube_metrics_service.get_mocked_pods()
+    response = app.kube_metrics_service.get_pods()
     return JSONResponse({"pods": response})
 
 
@@ -32,7 +32,7 @@ def get_pods():
 def get_deployments():
     from app.entrypoint import app
 
-    response = app.kube_metrics_service.get_mocked_deployments()
+    response = app.kube_metrics_service.get_deployments()
     return JSONResponse({"deployments": response})
 
 
@@ -40,7 +40,7 @@ def get_deployments():
 def get_nodes_metrics():
     from app.entrypoint import app
 
-    response = app.kube_metrics_service.get_node_metrics()
+    response = app.kube_metrics_service.get_node_metrics_from_db()
     return JSONResponse({"node-metrics": response})
 
 
@@ -48,7 +48,7 @@ def get_nodes_metrics():
 def get_pods_metrics():
     from app.entrypoint import app
 
-    response = app.kube_metrics_service.get_pod_metrics()
+    response = app.kube_metrics_service.get_pod_metrics_from_db()
     return JSONResponse({"pod-metrics": response})
 
 
@@ -56,5 +56,5 @@ def get_pods_metrics():
 def get_container_metrics(name: str):
     from app.entrypoint import app
 
-    response = app.kube_metrics_service.get_container_metrics(name)
+    response = app.kube_metrics_service.get_container_metrics_from_db(name)
     return JSONResponse(response)
