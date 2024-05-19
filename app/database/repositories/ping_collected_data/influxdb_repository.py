@@ -101,4 +101,3 @@ class PingCollectedDataRepository(IPingCollectedDataRepository):
         ping_tables: TableList = self._query_api.query(org=self._settings.influxdb_org, query=query)
         output = ping_tables.to_json()
         return json.loads(output)[0] if output != '[]' else {}
-

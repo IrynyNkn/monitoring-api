@@ -5,6 +5,7 @@ from celery import Task
 from kubernetes import config, client
 
 from app.database.repositories.kube_collected_data import IKubeCollectedDataRepository
+from app.settings import AppSettings
 
 # mocks
 from app.metrics.services.kube_metrics.mocks import (
@@ -22,26 +23,28 @@ class KubeMetricsService:
         self,
         kube_repository: IKubeCollectedDataRepository,
         kube_metrics_collection_task: Task,
+        settings: AppSettings
     ) -> None:
         self._kube_metrics_collection_task = kube_metrics_collection_task
         self._kube_repository = kube_repository
+        self._settings = settings
 
         self._logger = logging.getLogger(__name__)
 
-        # TODO: uncomment in production kubernetes cluster
-        config.load_incluster_config()
-        self._core_api = client.CoreV1Api()
-        self._apps_api = client.AppsV1Api()
-        self._custom_objects_api = client.CustomObjectsApi()
-        self._node_metrics = self._custom_objects_api.list_cluster_custom_object(
-            group="metrics.k8s.io",
-            version="v1beta1",
-            plural="nodes"
-        )
+        if self._settings.gather_kube_metrics:
+            config.load_incluster_config()
+            self._core_api = client.CoreV1Api()
+            self._apps_api = client.AppsV1Api()
+            self._custom_objects_api = client.CustomObjectsApi()
+            self._node_metrics = self._custom_objects_api.list_cluster_custom_object(
+                group="metrics.k8s.io",
+                version="v1beta1",
+                plural="nodes"
+            )
 
     # METRICS COLLECTION START
     def _retrieve_node_metrics(self):
-        if False:
+        if not self._settings.gather_kube_metrics:
             return nodes_dynamic_mocked_metrics
 
         node_metrics = self._custom_objects_api.list_cluster_custom_object(
@@ -54,7 +57,7 @@ class KubeMetricsService:
         return node_metrics
 
     def _retrieve_pod_metrics(self):
-        if False:
+        if not self._settings.gather_kube_metrics:
             return pods_dynamic_mocked_metrics
 
         pod_metrics = self._custom_objects_api.list_namespaced_custom_object(
@@ -93,7 +96,7 @@ class KubeMetricsService:
 
     # FROM KUBERNETES API
     def get_namespaces(self):
-        if False:
+        if not self._settings.gather_kube_metrics:
             return namespaces_mock
 
         namespaces = self._core_api.list_namespace()
@@ -110,7 +113,7 @@ class KubeMetricsService:
         return result
 
     def get_deployments(self):
-        if False:
+        if not self._settings.gather_kube_metrics:
             return deployments_mock
 
         deployments = self._apps_api.list_deployment_for_all_namespaces()
@@ -132,7 +135,7 @@ class KubeMetricsService:
         return result
 
     def get_pods(self):
-        if False:
+        if not self._settings.gather_kube_metrics:
             return pods_mock
 
         pods = self._core_api.list_pod_for_all_namespaces()
@@ -175,7 +178,7 @@ class KubeMetricsService:
         return result
 
     def get_nodes(self):
-        if False:
+        if not self._settings.gather_kube_metrics:
             return nodes_mock
 
         nodes = self._core_api.list_node()

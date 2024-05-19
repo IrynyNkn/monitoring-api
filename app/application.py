@@ -6,6 +6,8 @@ from redis import Redis
 from influxdb_client import InfluxDBClient
 from sqlalchemy.orm import sessionmaker, Session
 
+from app.database.repositories.health_check_collected_data import HealthCheckCollectedDataRepo, \
+    IHealthCheckCollectedDataRepo
 from app.database.repositories.user.user_repository import UserRepository
 from app.metrics.services import AlertsService
 from app.metrics.services.accounts.user_service import UserService
@@ -68,6 +70,7 @@ class Application:
         self._alerts_repository = None
 
         self._health_check_repository = None
+        self._health_check_metrics_repo = None
         self._health_check_service = None
 
     @property
@@ -95,7 +98,8 @@ class Application:
             from .metrics.celery_tasks import kube_metrics_collecting
             self._kube_metrics_service = KubeMetricsService(
                 self.kube_metrics_repository,
-                cast(Task, kube_metrics_collecting)
+                cast(Task, kube_metrics_collecting),
+                self.config
             )
 
         return self._kube_metrics_service
@@ -137,13 +141,24 @@ class Application:
         return self._alerts_crud_service
 
     @property
+    def health_check_metrics_repo(self) -> IHealthCheckCollectedDataRepo:
+        if not self._health_check_metrics_repo:
+            self._health_check_metrics_repo = HealthCheckCollectedDataRepo(self.influxdb_client, self.config)
+
+        return self._health_check_metrics_repo
+
+    @property
     def health_check_repository(self) -> HealthCheckConfigRepo:
         return HealthCheckConfigRepo(self.postgres_session_maker())
 
     @property
     def health_check_service(self) -> HealthCheckService:
         if not self._health_check_service:
-            # from .metrics.celery_tasks import continuous_ping
-            self._health_check_service = HealthCheckService(self.health_check_repository)
+            from .metrics.celery_tasks import continuous_health_check
+            self._health_check_service = HealthCheckService(
+                self.health_check_repository,
+                cast(Task, continuous_health_check),
+                self.health_check_metrics_repo
+            )
 
         return self._health_check_service

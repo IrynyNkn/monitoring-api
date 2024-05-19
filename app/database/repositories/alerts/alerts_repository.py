@@ -33,27 +33,32 @@ class AlertRepository(IAlertsRepository):
 
         result: List[Dict[str, Any]] = []
         for alert in alerts:
-            result.append(AlertEntity(
-                id=str(alert.id),
-                email=alert.email,
-                for_=alert.for_,
-                repeat_alert=alert.repeat_alert,
-                alert_group=alert.alert_group,
-                alert_type=alert.alert_type
-            ).to_dict())
+            result.append(
+                AlertEntity(
+                    id=str(alert.id),
+                    email=alert.email,
+                    for_=alert.for_,
+                    repeat_alert=alert.repeat_alert,
+                    alert_group=alert.alert_group,
+                    alert_type=alert.alert_type
+                ).to_dict()
+            )
 
         return result
 
     def update_alert(self, entity: CreateAlert, alert_id: str):
         try:
             old_alert = self._session.query(AlertTable).get(alert_id)
+
             if old_alert:
                 old_alert.email = entity.email
                 old_alert.for_ = entity.for_
                 old_alert.repeat_alert = entity.repeat_alert
                 old_alert.alert_group = entity.alert_group
                 old_alert.alert_type = entity.alert_type
+
             self._session.commit()
+
             return str(old_alert.id)
         except SQLAlchemyError as e:
             print(f"An error occurred: {e}")
@@ -66,9 +71,11 @@ class AlertRepository(IAlertsRepository):
     def delete_alert(self, alert_id: str):
         try:
             alert_to_delete = self._session.query(AlertTable).get(alert_id)
+
             if alert_to_delete:
                 self._session.delete(alert_to_delete)
                 self._session.commit()
+
                 return alert_id
         except SQLAlchemyError:
             self._session.rollback()

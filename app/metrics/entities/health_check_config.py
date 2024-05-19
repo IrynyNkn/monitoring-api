@@ -18,3 +18,15 @@ class HealthCheckConfig:
             "interval": self.interval,
             "created_at": str(self.created_at)
         }
+
+
+@dataclass
+class ExtendedHCConfig(HealthCheckConfig):
+    round_trip_time: float = None
+    status: int = None
+
+    def to_dict(self) -> dict:
+        base_dict = super().to_dict()
+        base_dict["round_trip_time"] = self.round_trip_time
+
+        return base_dict

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict
 from icmplib import Host
 
 from app.metrics.entities import ExtendedPingConfig
@@ -18,7 +18,3 @@ class IPingCollectedDataRepository(ABC):
     @abstractmethod
     def _get_ping_metadata(self, ping_id: str) -> Dict[str, Any]:
         pass
-
-    # @abstractmethod
-    # def get_user_pings(self) -> List[Dict[str, Any]]:
-    #     pass

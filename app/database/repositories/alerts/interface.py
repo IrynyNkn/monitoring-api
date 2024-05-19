@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
 
-from app.metrics.entities.alert import Alert
 from app.routes.serializers import CreateAlert
 
 
