@@ -46,6 +46,7 @@ class HealthCheckService:
                 self._health_check_task.apply_async(
                     args=[health_check_config.id],
                     countdown=health_check_config.interval,
+                    expires=health_check_config.interval + 0.01
                 )
 
                 return
@@ -67,8 +68,12 @@ class HealthCheckService:
         return create_hc_id
 
     def get_health_check_metrics(self, health_check_id: str) -> Dict[str, Any]:
-        health_check_metrcis = self._metrics_repository.get_health_check_metrics(health_check_id)
-        return health_check_metrcis
+        health_check_metrics = self._metrics_repository.get_health_check_metrics(health_check_id)
+        config = self.check_endpoint(health_check_id)
+
+        health_check_metrics["metadata"]["interval"] = config.interval
+
+        return health_check_metrics
 
     # POSTGRES DB
     def check_endpoint(self, health_check_id: str):

@@ -32,7 +32,7 @@ class HealthCheckCollectedDataRepo(IHealthCheckCollectedDataRepo):
     def get_health_check_metrics(self, health_check_id: str) -> Dict[str, Any]:
         query = f'''
         from(bucket: "{self._settings.influxdb_bucket}")
-          |> range(start: -1h)
+          |> range(start: -12h)
           |> filter(fn: (r) => r._measurement == "health_check")
           |> filter(fn: (r) => r.id == "{health_check_id}")
           |> filter(fn: (r) => r._field == "round_trip_time" or r._field == "status")
@@ -46,7 +46,54 @@ class HealthCheckCollectedDataRepo(IHealthCheckCollectedDataRepo):
         ping_tables: TableList = self._query_api.query(org=self._settings.influxdb_org, query=query)
         metrics = json.loads(ping_tables.to_json())
 
-        return {"metrics": metrics}
+        metadata = self._get_health_check_metadata(health_check_id)
+        metadata["health_check_id"] = health_check_id
+
+        return {
+            "metadata": metadata,
+            "metrics": metrics
+        }
 
     def _get_health_check_metadata(self, health_check_id: str):
-        pass
+        query = f'''
+        from(bucket: "{self._settings.influxdb_bucket}")
+          |> range(start: -12h)
+          |> filter(fn: (r) => r._measurement == "health_check")
+          |> filter(fn: (r) => r.id == "{health_check_id}")
+          |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+          |> map(fn: (r) => ({{
+              endpointUrl: r.endpoint_url,
+              time: r._time, 
+              status: r.status,
+            }}))
+          |> group()
+          |> reduce(
+              identity: {{
+                endpointUrl: "",
+                total: 0, 
+                successful: 0, 
+                failed: 0, 
+                lastCheck: time(v: "1970-01-01T00:00:00Z"),
+                firstCheck: now()
+              }},
+              fn: (r, accumulator) => ({{
+                  total: accumulator.total + 1,
+                  successful: accumulator.successful + (if r.status == 1 then 1 else 0),
+                  failed: accumulator.failed + (if r.status == 1 then 0 else 1),
+                  lastCheck: if r.time > accumulator.lastCheck then r.time else accumulator.lastCheck,
+                  firstCheck: if r.time < accumulator.firstCheck then r.time else accumulator.firstCheck,
+                  endpointUrl: r.endpointUrl
+              }}))
+          |> map(fn: (r) => ({{
+              failed_checks: r.failed,
+              success_rate: (r.successful / r.total) * 100,
+              last_check_time: r.lastCheck,
+              first_check_time: r.firstCheck,
+              endpoint_url: r.endpointUrl,
+              total_checks: r.total,
+              successful_checks: r.successful
+            }}))
+        '''
+        ping_tables: TableList = self._query_api.query(org=self._settings.influxdb_org, query=query)
+        output = ping_tables.to_json()
+        return json.loads(output)[0] if output != '[]' else {}

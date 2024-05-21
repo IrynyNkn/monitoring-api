@@ -36,6 +36,7 @@ class PingService:
                 self._ping_task.apply_async(
                     args=[ping_config.id],
                     countdown=ping_config.interval,
+                    expires=ping_config.interval + 0.01
                 )
 
                 return
@@ -65,6 +66,10 @@ class PingService:
 
     def get_ping_metrics(self, ping_id: str) -> Dict[str, Any]:
         ping_metrics = self._metrics_repository.get_ping_metrics(ping_id)
+
+        ping_config = self._ping_repository.get(ping_id)
+        ping_metrics['metadata']['interval'] = ping_config.interval
+
         return ping_metrics
 
     def get_pings(self, user_id: str) -> List[Dict[str, Any]]:

@@ -52,8 +52,8 @@ class KubeMetricsService:
             version="v1beta1",
             plural="nodes"
         )
-        print("Node Metrics:")
-        print(node_metrics)
+        # print("Node Metrics:")
+        # print(node_metrics)
         return node_metrics
 
     def _retrieve_pod_metrics(self):
@@ -66,8 +66,8 @@ class KubeMetricsService:
             plural="pods",
             namespace="default"
         )
-        print("Pod Metrics:")
-        print(pod_metrics)
+        # print("Pod Metrics:")
+        # print(pod_metrics)
         return pod_metrics
 
     def retrieve_kube_dynamic_metrics(self):
