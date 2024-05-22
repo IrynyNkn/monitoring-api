@@ -19,10 +19,10 @@ class PingCollectedDataRepository(IPingCollectedDataRepository):
         self._writer = self._influxdb.write_api(write_options=SYNCHRONOUS)
         self._query_api = self._influxdb.query_api()
 
-    def get_ping_metrics(self, ping_id: str) -> Dict[str, Any]:
+    def get_ping_metrics(self, ping_id: str, time_range: str) -> Dict[str, Any]:
         query = f'''
         from(bucket: "{self._settings.influxdb_bucket}")
-          |> range(start: -1h)
+          |> range(start: {time_range})
           |> filter(fn: (r) => r._measurement == "ping")
           |> filter(fn: (r) => r.id == "{ping_id}")
           |> filter(fn: (r) => r._field == "round_trip_time" or r._field == "status")
@@ -36,7 +36,7 @@ class PingCollectedDataRepository(IPingCollectedDataRepository):
         ping_tables: TableList = self._query_api.query(org=self._settings.influxdb_org, query=query)
         metrics = json.loads(ping_tables.to_json())
 
-        metadata = self._get_ping_metadata(ping_id)
+        metadata = self._get_ping_metadata(ping_id, time_range)
         metadata["ping_id"] = ping_id
 
         return {
@@ -56,10 +56,10 @@ class PingCollectedDataRepository(IPingCollectedDataRepository):
 
         return self
 
-    def _get_ping_metadata(self, ping_id: str) -> Dict[str, Any]:
+    def _get_ping_metadata(self, ping_id: str, time_range: str) -> Dict[str, Any]:
         query = f'''
         from(bucket: "{self._settings.influxdb_bucket}")
-          |> range(start: -1h)
+          |> range(start: {time_range})
           |> filter(fn: (r) => r._measurement == "ping")
           |> filter(fn: (r) => r.id == "{ping_id}")
           |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")

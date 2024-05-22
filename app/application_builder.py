@@ -30,7 +30,7 @@ class ApplicationBuilder:
         self._fastapi_app = override_with or FastAPI()
         self._fastapi_app.add_middleware(
             CORSMiddleware,
-            allow_origins=["http://localhost:5173"],  # List of allowed origins
+            allow_origins=["*"],
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],

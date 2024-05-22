@@ -64,8 +64,7 @@ class Application:
         self._user_service = None
         self._user_repository = None
 
-        self._notification_service = None
-
+        self._notifier = None
         self._alerts_crud_service = None
         self._alerts_repository = None
 
@@ -81,7 +80,12 @@ class Application:
     def ping_service(self) -> PingService:
         if not self._ping_service:
             from .metrics.celery_tasks import continuous_ping
-            self._ping_service = PingService(self.ping_repository, cast(Task, continuous_ping), self.metrics_repository)
+            self._ping_service = PingService(
+                self.ping_repository,
+                cast(Task, continuous_ping),
+                self.metrics_repository,
+                self.alerts_crud_service
+            )
 
         return self._ping_service
 
@@ -123,11 +127,11 @@ class Application:
         return self._user_service
 
     @property
-    def notification_service(self) -> EmailNotifier:
-        if not self._notification_service:
-            self._notification_service = EmailNotifier(self.config.smtp_settings)
+    def notifier(self) -> EmailNotifier:
+        if not self._notifier:
+            self._notifier = EmailNotifier(self.config.smtp_settings)
 
-        return self._notification_service
+        return self._notifier
 
     @property
     def alerts_repository(self) -> AlertRepository:
@@ -136,7 +140,7 @@ class Application:
     @property
     def alerts_crud_service(self) -> AlertsService:
         if not self._alerts_crud_service:
-            self._alerts_crud_service = AlertsService(self.alerts_repository)
+            self._alerts_crud_service = AlertsService(self.alerts_repository, self.notifier)
 
         return self._alerts_crud_service
 

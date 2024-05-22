@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse, Response
 
 from app.routes.serializers import UpdatePing, CreatePing, PausePing
@@ -18,10 +18,9 @@ def get_icmp_pings(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/{ping_id}", status_code=status.HTTP_200_OK)
-def get_ping_metrics(ping_id: str):
+def get_ping_metrics(ping_id: str, time_range: str = Query(None)):
     from app.entrypoint import app
-
-    data = app.ping_service.get_ping_metrics(ping_id)
+    data = app.ping_service.get_ping_metrics(ping_id, time_range)
 
     return JSONResponse(data)
 
@@ -63,10 +62,21 @@ def cancel_ping(ping_id: str):
 
 
 @router.put("/pause/{ping_id}", status_code=status.HTTP_204_NO_CONTENT)
-def pause_ping(ping_id, pause_ping_data: PausePing):
+def pause_ping(ping_id):
     from app.entrypoint import app
 
-    ping_id = app.ping_service.pause_ping(ping_id, pause_ping_data.pause_value)
+    ping_id = app.ping_service.pause_ping(ping_id)
+    if ping_id:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@router.put("/resume/{ping_id}", status_code=status.HTTP_204_NO_CONTENT)
+def pause_ping(ping_id):
+    from app.entrypoint import app
+
+    ping_id = app.ping_service.resume_ping(ping_id)
     if ping_id:
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 

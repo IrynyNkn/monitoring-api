@@ -32,4 +32,4 @@ class EmailNotifier:
         except EmailNotValidError:
             self._logger.error(f"Invalid email address: {to}")
         except Exception as e:
-            self._logger.error(f"Error sending email: {e}")
+            self._logger.error(f"Error sending email: {e}", exc_info=True)

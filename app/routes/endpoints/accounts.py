@@ -12,7 +12,7 @@ router = APIRouter(prefix="/auth")
 async def test_notifier():
     from app.entrypoint import app
 
-    app.notification_service.send_email("Monitoring alert", "Notification about downtime", "iryninak03@gmail.com")
+    app.notifier.send_email("Monitoring alert", "Notification about downtime", "iryninak03@gmail.com")
 
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"success": "true"})
 

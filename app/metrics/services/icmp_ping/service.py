@@ -7,6 +7,9 @@ from celery import Task
 
 from app.database.repositories import IPingConfigRepository, IPingCollectedDataRepository
 from app.metrics.entities import PingConfig, ExtendedPingConfig
+from app.metrics.services.notifications.alerts import AlertsService
+from app.routes.serializers import AlertGroup
+from app.metrics.entities.alert import Alert as AlertEntity
 
 
 class PingService:
@@ -15,12 +18,24 @@ class PingService:
         ping_repository: IPingConfigRepository,
         ping_task: Task,
         metrics_repository: IPingCollectedDataRepository,
+        alerts_service: AlertsService,
     ) -> None:
         self._ping_repository = ping_repository
         self._metrics_repository = metrics_repository
         self._ping_task = ping_task
+        self._alerts_service = alerts_service
 
         self._logger = logging.getLogger(__name__)
+
+    def _send_alert(self, ping_config: PingConfig):
+        configured_alerts = self._alerts_service.get_alerts(ping_config.owner_id)
+        alert = next(
+            (alert for alert in configured_alerts if alert['alert_group'] == AlertGroup.ICMP_PING),
+            None,
+        )
+
+        if alert:
+            self._alerts_service.send_alert(ping_config, AlertEntity(**alert))
 
     def ping(self, ping_id: str) -> None:
         ping_config = self._ping_repository.get(ping_id)
@@ -29,17 +44,21 @@ class PingService:
             self._logger.info(f"Performing continuous ping for {ping_config.host} {ping_config.id}")
 
             if not ping_config.is_paused:
-                response = ping(ping_config.host, count=1)
+                try:
+                    response = ping(ping_config.host, count=1)
+                    self._save_ping_response(response, ping_config)
 
-                self._save_ping_response(response, ping_config)
+                    if response.packets_received == 0:
+                        self._send_alert(ping_config)
+                except Exception as e:
+                    self._logger.error(f"Error during ping execution {ping_config.host} {ping_config.id}")
+                    self._send_alert(ping_config)
 
-                self._ping_task.apply_async(
-                    args=[ping_config.id],
-                    countdown=ping_config.interval,
-                    expires=ping_config.interval + 0.01
-                )
-
-                return
+            self._ping_task.apply_async(
+                args=[ping_config.id],
+                countdown=ping_config.interval,
+                expires=ping_config.interval + 0.01
+            )
         else:
             self._logger.info(f"Ping to {ping_id} was canceled.")
 
@@ -64,11 +83,13 @@ class PingService:
 
         return ping_id
 
-    def get_ping_metrics(self, ping_id: str) -> Dict[str, Any]:
-        ping_metrics = self._metrics_repository.get_ping_metrics(ping_id)
+    def get_ping_metrics(self, ping_id: str, time_range_raw: str) -> Dict[str, Any]:
+        time_range = time_range_raw if time_range_raw is not None else '-12h'
+        ping_metrics = self._metrics_repository.get_ping_metrics(ping_id, time_range)
 
         ping_config = self._ping_repository.get(ping_id)
         ping_metrics['metadata']['interval'] = ping_config.interval
+        ping_metrics['metadata']['is_paused'] = ping_config.is_paused
 
         return ping_metrics
 
@@ -87,8 +108,12 @@ class PingService:
         ping_id = self._ping_repository.update_ping(ping_id, interval)
         return ping_id
 
-    def pause_ping(self, ping_id: str, pause_value: bool):
-        ping_id = self._ping_repository.pause_ping(ping_id, pause_value)
+    def pause_ping(self, ping_id: str):
+        ping_id = self._ping_repository.pause_ping(ping_id, True)
+        return ping_id
+
+    def resume_ping(self, ping_id: str):
+        ping_id = self._ping_repository.pause_ping(ping_id, False)
         return ping_id
 
     def delete_ping(self, ping_id: str) -> Optional[str]:

@@ -8,7 +8,7 @@ from app.metrics.entities import ExtendedPingConfig
 class IPingCollectedDataRepository(ABC):
 
     @abstractmethod
-    def get_ping_metrics(self, ping_id: str) -> Dict[str, Any]:
+    def get_ping_metrics(self, ping_id: str, time_range: str) -> Dict[str, Any]:
         pass
 
     @abstractmethod
@@ -16,5 +16,5 @@ class IPingCollectedDataRepository(ABC):
         pass
 
     @abstractmethod
-    def _get_ping_metadata(self, ping_id: str) -> Dict[str, Any]:
+    def _get_ping_metadata(self, ping_id: str, time_range: str) -> Dict[str, Any]:
         pass
