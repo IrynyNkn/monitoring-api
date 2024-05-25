@@ -75,7 +75,7 @@ class KubeMetricsService:
         pod_metrics = self._retrieve_pod_metrics()
         self.save_kube_dynamic_metrics(node_metrics, pod_metrics)
 
-        self._kube_metrics_collection_task.apply_async(countdown=60, expires=60.01)
+        self._kube_metrics_collection_task.apply_async(countdown=60, expires=80)
         return node_metrics, pod_metrics
 
     def save_kube_dynamic_metrics(self, node_metrics: dict[str, Any], pod_metrics: dict[str, Any]) -> None:
@@ -95,6 +95,19 @@ class KubeMetricsService:
         return metrics
 
     # FROM KUBERNETES API
+    def get_pod_limits(self, pod_name: str):
+        pod = self._core_api.read_namespaced_pod(name=pod_name, namespace='default')
+        for container in pod.spec.containers:
+            container_name = container.name
+            resources = container.resources
+
+            cpu_limit = resources.limits['cpu'] if resources.limits and 'cpu' in resources.limits else 'not specified'
+            memory_limit = resources.limits['memory'] if resources.limits and 'memory' in resources.limits else 'not specified'
+
+            print(f"Container: {container_name}")
+            print(f"  CPU Limit: {cpu_limit}")
+            print(f"  Memory Limit: {memory_limit}")
+
     def get_namespaces(self):
         if not self._settings.gather_kube_metrics:
             return namespaces_mock

@@ -58,3 +58,11 @@ def get_container_metrics(name: str):
 
     response = app.kube_metrics_service.get_container_metrics_from_db(name)
     return JSONResponse(response)
+
+
+@router.get("/pod-limits/{pod_name}", status_code=status.HTTP_200_OK)
+def get_container_metrics(pod_name: str):
+    from app.entrypoint import app
+
+    response = app.kube_metrics_service.get_pod_limits(pod_name)
+    return JSONResponse({"success": "true"})

@@ -57,7 +57,7 @@ class PingService:
             self._ping_task.apply_async(
                 args=[ping_config.id],
                 countdown=ping_config.interval,
-                expires=ping_config.interval + 0.01
+                expires=ping_config.interval + 2
             )
         else:
             self._logger.info(f"Ping to {ping_id} was canceled.")

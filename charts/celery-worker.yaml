@@ -16,6 +16,7 @@ spec:
       labels:
         app: celery-worker
     spec:
+      serviceAccountName: app-service-account
       containers:
         - args:
             - celery
@@ -48,7 +49,22 @@ spec:
               value: ira-bucket
             - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
               value: ira-super-secret-auth-token
-
+            - name: SMTP_HOST
+              value: smtp.office365.com
+            - name: SMTP_PORT
+              value: "587"
+            - name: SMTP_USERNAME
+              value: "***"
+            - name: SMTP_PASSWORD
+              value: "***"
+            - name: POSTGRES_URL
+              value: postgresql+psycopg2://admin:admin-ira-pw@postgres:5432/metrics-api
+            - name: SECRET_KEY
+              value: "***"
+            - name: AUTH_ENABLED
+              value: "true"
+            - name: GATHER_KUBE_METRICS
+              value: "true"
           image: irynanak/monitoring-app:latest
           name: celery-worker
           imagePullPolicy: IfNotPresent

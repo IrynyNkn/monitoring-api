@@ -18,14 +18,10 @@ spec:
     spec:
       serviceAccountName: app-service-account
       containers:
-        - args:
-            - uvicorn
-            - app.entrypoint:fastapi_app
-            - --host
-            - 0.0.0.0
-            - --port
-            - "80"
-            - --reload
+        - name: app
+          image: irynanak/monitoring-app:latest
+          command: ["/bin/bash", "-c"]
+          args: ["alembic upgrade head && uvicorn app.entrypoint:fastapi_app --host 0.0.0.0 --port 80 --reload"]
           env:
             - name: CELERY_BROKER_URL
               value: redis://redis:6379/0
@@ -51,8 +47,22 @@ spec:
               value: ira-bucket
             - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
               value: ira-super-secret-auth-token
-          image: irynanak/monitoring-app:latest
-          name: app
+            - name: SMTP_HOST
+              value: smtp.office365.com
+            - name: SMTP_PORT
+              value: "587"
+            - name: SMTP_USERNAME
+              value: "***"
+            - name: SMTP_PASSWORD
+              value: "***"
+            - name: POSTGRES_URL
+              value: postgresql+psycopg2://admin:admin-ira-pw@postgres:5432/metrics-api
+            - name: SECRET_KEY
+              value: "***"
+            - name: AUTH_ENABLED
+              value: "true"
+            - name: GATHER_KUBE_METRICS
+              value: "true"
           ports:
             - containerPort: 80
               hostPort: 8000

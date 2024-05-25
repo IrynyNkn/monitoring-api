@@ -46,7 +46,7 @@ class HealthCheckService:
                 self._health_check_task.apply_async(
                     args=[health_check_config.id],
                     countdown=health_check_config.interval,
-                    expires=health_check_config.interval + 0.01
+                    expires=health_check_config.interval + 2
                 )
 
                 return
