@@ -18,15 +18,30 @@ spec:
         - image: postgres:16.3
           env:
             - name: POSTGRES_HOST
-              value: postgres
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: postgres-host
             - name: POSTGRES_PORT
-              value: "5432"
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: postgres-port
             - name: POSTGRES_DB
-              value: metrics-api
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: postgres-db
             - name: POSTGRES_USER
-              value: admin
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: postgres-user
             - name: POSTGRES_PASSWORD
-              value: admin-ira-pw
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: postgres-password
           name: postgres
           ports:
             - containerPort: 5432

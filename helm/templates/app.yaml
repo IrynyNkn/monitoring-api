@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: app
+  name: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      serviceAccountName: app-service-account
+      containers:
+        - name: app
+          image: irynanak/monitoring-app:latest
+          command: ["/bin/bash", "-c"]
+          args: ["alembic upgrade head && uvicorn app.entrypoint:fastapi_app --host 0.0.0.0 --port 80 --reload"]
+          env:
+            - name: CELERY_BROKER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: celery-broker-url
+            - name: CELERY_RESULT_BACKEND
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: celery-result-backend
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: redis-host
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: redis-port
+            - name: REDIS_APP_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: redis-app-db
+            - name: INFLUXDB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: influxdb-url
+            - name: DOCKER_INFLUXDB_INIT_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: influxdb-init-mode
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-username
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-password
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-org
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-bucket
+            - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-admin-token
+            - name: SMTP_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: smtp-host
+            - name: SMTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: smtp-port
+            - name: SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: smtp-username
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: smtp-password
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: postgresql-url
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: app-secret-key
+            - name: AUTH_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: auth-enabled
+            - name: GATHER_KUBE_METRICS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: gather-kube-metrics
+            - name: RANDOM
+              value: random
+          ports:
+            - containerPort: 80
+              hostPort: 8000
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: app
+  name: app
+spec:
+  selector:
+    app: app
+  type: LoadBalancer
+  ports:
+    - name: "8000"
+      port: 8000
+      targetPort: 80
+      nodePort: 30001

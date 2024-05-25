@@ -18,17 +18,35 @@ spec:
         - image: influxdb:2.7.6-alpine
           env:
             - name: DOCKER_INFLUXDB_INIT_MODE
-              value: setup
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: influxdb-init-mode
             - name: DOCKER_INFLUXDB_INIT_USERNAME
-              value: admin
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-username
             - name: DOCKER_INFLUXDB_INIT_PASSWORD
-              value: admin-ira-pw
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-password
             - name: DOCKER_INFLUXDB_INIT_ORG
-              value: ira-org
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-org
             - name: DOCKER_INFLUXDB_INIT_BUCKET
-              value: ira-bucket
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-bucket
             - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
-              value: ira-super-secret-auth-token
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-admin-token
           name: influxdb
           ports:
             - containerPort: 8086

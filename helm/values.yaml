@@ -1,0 +1,4 @@
+# values.yaml
+image:
+  repository: nginx
+  tag: stable
