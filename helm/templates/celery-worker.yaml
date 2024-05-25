@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: celery-worker
+  name: celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celery-worker
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: celery-worker
+    spec:
+      serviceAccountName: app-service-account
+      containers:
+        - args:
+            - celery
+            - -A
+            - app.entrypoint:celery_app
+            - worker
+            - --loglevel=info
+          env:
+            - name: CELERY_BROKER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: celery-broker-url
+            - name: CELERY_RESULT_BACKEND
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: celery-result-backend
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: redis-host
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: redis-port
+            - name: REDIS_APP_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: redis-app-db
+            - name: INFLUXDB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: influxdb-url
+            - name: DOCKER_INFLUXDB_INIT_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: influxdb-init-mode
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-username
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-password
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-org
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-bucket
+            - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: influxdb-admin-token
+            - name: SMTP_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: smtp-host
+            - name: SMTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: smtp-port
+            - name: SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: smtp-username
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: smtp-password
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: postgresql-url
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: app-secret-key
+            - name: AUTH_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: auth-enabled
+            - name: GATHER_KUBE_METRICS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: gather-kube-metrics
+          image: irynanak/monitoring-app:latest
+          name: celery-worker
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always

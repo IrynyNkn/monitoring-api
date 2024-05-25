@@ -150,45 +150,52 @@ class KubeMetricsService:
     def get_pods(self):
         if not self._settings.gather_kube_metrics:
             return pods_mock
+        try:
+            pods = self._core_api.list_pod_for_all_namespaces()
 
-        pods = self._core_api.list_pod_for_all_namespaces()
-        result = []
-        for pod in pods.items:
-            pod_data = {
-                "name": pod.metadata.name,
-                "namespace": pod.metadata.namespace,
-                "status": pod.status.phase,
-                "node_name": pod.spec.node_name,
-                "created_at": pod.metadata.creation_timestamp.isoformat(),
-                "ip": pod.status.pod_ip,
-                "containers": [
-                    {
-                        "name": container.name,
-                        "image": container.image,
-                        "ready": container.ready,
-                        "restart_count": container.restart_count,
-                        "state": {
-                            "running": {
-                                "started_at": container.state.running.started_at.isoformat()
-                            } if container.state.running is not None else None,
-                            "terminated": {
-                                "started_at": container.state.terminated.started_at.isoformat(),
-                                "finished_at": container.state.terminated.finished_at.isoformat(),
-                                "reason": container.state.terminated.reason,
-                                "message": container.state.terminated.message,
-                                "container_id": container.state.terminated.container_id
-                            } if container.state.terminated is not None else None,
-                            "waiting": {
-                                "message": container.state.waiting.message,
-                                "reason": container.state.waiting.reason,
-                            } if container.state.waiting is not None else None
-                        }
-                    } for container in pod.status.container_statuses
-                ]
-            }
-            result.append(pod_data)
+            self._logger.info('!!!PODS:')
+            self._logger.info(pods)
 
-        return result
+            result = []
+            for pod in pods.items:
+                pod_data = {
+                    "name": pod.metadata.name,
+                    "namespace": pod.metadata.namespace,
+                    "status": pod.status.phase,
+                    "node_name": pod.spec.node_name,
+                    "created_at": pod.metadata.creation_timestamp.isoformat(),
+                    "ip": pod.status.pod_ip,
+                    "containers": [
+                        {
+                            "name": container.name,
+                            "image": container.image,
+                            "ready": container.ready,
+                            "restart_count": container.restart_count,
+                            "state": {
+                                "running": {
+                                    "started_at": container.state.running.started_at.isoformat()
+                                } if container.state.running is not None else None,
+                                "terminated": {
+                                    "started_at": container.state.terminated.started_at.isoformat(),
+                                    "finished_at": container.state.terminated.finished_at.isoformat(),
+                                    "reason": container.state.terminated.reason,
+                                    "message": container.state.terminated.message,
+                                    "container_id": container.state.terminated.container_id
+                                } if container.state.terminated is not None else None,
+                                "waiting": {
+                                    "message": container.state.waiting.message,
+                                    "reason": container.state.waiting.reason,
+                                } if container.state.waiting is not None else None
+                            }
+                        } for container in (pod.status.container_statuses or [])
+                    ]
+                }
+                result.append(pod_data)
+
+            return result
+        except Exception as e:
+            self._logger.error(e)
+            return pods_mock
 
     def get_nodes(self):
         if not self._settings.gather_kube_metrics:
