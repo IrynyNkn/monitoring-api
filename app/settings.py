@@ -33,3 +33,5 @@ class AppSettings(BaseSettings):
     gather_kube_metrics: bool = Field(True, alias="GATHER_KUBE_METRICS")
 
     smtp_settings: SMTPSettings = SMTPSettings()
+
+    is_external: bool = Field(False, alias="IS_EXTERNAL")

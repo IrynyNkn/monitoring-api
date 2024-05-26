@@ -87,8 +87,6 @@ class ApplicationBuilder:
         return self
 
     def build(self) -> Application:
-        self._validate_application()
-
         return Application(
             config=self.config,
             fastapi=self._fastapi_app,
@@ -97,7 +95,3 @@ class ApplicationBuilder:
             influxdb_client=self._influxdb_client,
             postgres_session_maker=self._postgres_session_maker,
         )
-
-    def _validate_application(self) -> None:
-        if self._celery_app is None or self._fastapi_app is None or self._redis is None or self._influxdb_client is None:
-            raise ValueError("All applications must be configured")

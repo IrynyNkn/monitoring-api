@@ -1,24 +1,16 @@
-from app import constants
-from app.routes import router
+from app.application_factory import ApplicationFactory
 from app.settings import AppSettings
-from app.application_builder import ApplicationBuilder
 
 
-app = (
-    ApplicationBuilder.from_config(AppSettings())
-    .with_redis()
-    .with_celery()
-    .with_fastapi()
-        .with_fastapi_routes(
-            [router],
-            prefix=constants.ROUTER_PATH,
-        )
-    .with_influxdb()
-    .with_postgres()
-    .build()
-)
+application_is_external = AppSettings().is_external
+factory = ApplicationFactory()
 
-from app.metrics.celery_tasks import *
+app = factory.create_external_application() if application_is_external else factory.create_internal_application()
 
-fastapi_app = app.fastapi
-celery_app = app.celery
+if application_is_external:
+    fastapi_app = app.fastapi
+else:
+    from app.metrics.celery_tasks import *
+
+    fastapi_app = app.fastapi
+    celery_app = app.celery
