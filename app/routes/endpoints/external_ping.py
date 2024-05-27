@@ -1,6 +1,4 @@
-from icmplib import ping
-
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, HTTPException
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/external-ping")
@@ -8,6 +6,11 @@ router = APIRouter(prefix="/external-ping")
 
 @router.get("", status_code=status.HTTP_200_OK)
 def get_icmp_pings():
-    response = ping("need to think where to get this value from", count=1)
+    from app.entrypoint import app
 
-    return JSONResponse({"rtt": response.avg_rtt})
+    data = app.external_ping_service.ping()
+
+    if data.get("error"):
+        return JSONResponse({"error": "Host not specified"}, status_code=status.HTTP_400_BAD_REQUEST)
+
+    return JSONResponse(data)

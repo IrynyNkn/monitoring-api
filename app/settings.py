@@ -35,3 +35,5 @@ class AppSettings(BaseSettings):
     smtp_settings: SMTPSettings = SMTPSettings()
 
     is_external: bool = Field(False, alias="IS_EXTERNAL")
+    external_ping_host: str = Field(False, alias="EXTERNAL_PING_HOST")
+    external_ping_alert_email: str = Field(False, alias="EXTERNAL_PING_ALERT_EMAIL")

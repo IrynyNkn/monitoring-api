@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from app.database.repositories.health_check_collected_data import HealthCheckCollectedDataRepo, \
     IHealthCheckCollectedDataRepo
 from app.database.repositories.user.user_repository import UserRepository
-from app.metrics.services import AlertsService
+from app.metrics.services import AlertsService, ExternalPingService
 from app.metrics.services.accounts.user_service import UserService
 from app.settings import AppSettings
 from app.database.repositories import (
@@ -71,6 +71,8 @@ class Application:
         self._health_check_repository = None
         self._health_check_metrics_repo = None
         self._health_check_service = None
+
+        self._external_ping_service = None
 
     @property
     def ping_repository(self) -> IPingConfigRepository:
@@ -166,3 +168,10 @@ class Application:
             )
 
         return self._health_check_service
+
+    @property
+    def external_ping_service(self) -> ExternalPingService:
+        if not self._external_ping_service:
+            self._external_ping_service = ExternalPingService(self.config)
+
+        return self._external_ping_service
