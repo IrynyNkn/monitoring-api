@@ -1,4 +1,4 @@
-from typing import Self, Optional
+from typing import Optional
 
 from celery import Celery
 from fastapi import FastAPI, APIRouter
@@ -26,7 +26,7 @@ class ApplicationBuilder:
     def from_config(cls, config: AppSettings) -> "ApplicationBuilder":
         return cls(config)
 
-    def with_fastapi(self, override_with: Optional[FastAPI] = None) -> Self:
+    def with_fastapi(self, override_with: Optional[FastAPI] = None) -> "ApplicationBuilder":
         self._fastapi_app = override_with or FastAPI()
         self._fastapi_app.add_middleware(
             CORSMiddleware,
@@ -37,7 +37,7 @@ class ApplicationBuilder:
         )
         return self
 
-    def with_fastapi_routes(self, routes: list[APIRouter], prefix: Optional[str] = None) -> Self:
+    def with_fastapi_routes(self, routes: list[APIRouter], prefix: Optional[str] = None) -> "ApplicationBuilder":
         if not self._fastapi_app:
             raise ValueError("FastAPI is not configured")
 
@@ -46,7 +46,7 @@ class ApplicationBuilder:
 
         return self
 
-    def with_celery(self, override_with: Optional[Celery] = None) -> Self:
+    def with_celery(self, override_with: Optional[Celery] = None) -> "ApplicationBuilder":
         self._celery_app = override_with or Celery()
 
         self._celery_app.conf.broker_url = self.config.celery_broker_url
@@ -54,7 +54,7 @@ class ApplicationBuilder:
 
         return self
 
-    def with_redis(self, override_with: Optional[Redis] = None) -> Self:
+    def with_redis(self, override_with: Optional[Redis] = None) -> "ApplicationBuilder":
         if override_with is None:
             self._redis = Redis(
                 host=self.config.redis_host,
@@ -67,7 +67,7 @@ class ApplicationBuilder:
 
         return self
 
-    def with_influxdb(self, override_with: Optional[InfluxDBClient] = None) -> Self:
+    def with_influxdb(self, override_with: Optional[InfluxDBClient] = None) -> "ApplicationBuilder":
         if override_with is None:
             self._influxdb_client = InfluxDBClient(
                 url=self.config.influxdb_url,
@@ -79,7 +79,7 @@ class ApplicationBuilder:
 
         return self
 
-    def with_postgres(self, override_with: None = None) -> Self:
+    def with_postgres(self, override_with: None = None) -> "ApplicationBuilder":
         engine = create_engine(AppSettings().postgres_url)
         session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         self._postgres_session_maker = scoped_session(session_factory)

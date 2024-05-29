@@ -123,8 +123,11 @@ spec:
                 configMapKeyRef:
                   name: app-configmap
                   key: gather-kube-metrics
-            - name: RANDOM
-              value: random
+            - name: IS_EXTERNAL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: is-external
           ports:
             - containerPort: 80
               hostPort: 8000
@@ -146,4 +149,3 @@ spec:
     - name: "8000"
       port: 8000
       targetPort: 80
-      nodePort: 30001

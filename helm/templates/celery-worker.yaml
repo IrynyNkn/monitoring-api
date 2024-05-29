@@ -125,6 +125,11 @@ spec:
                 configMapKeyRef:
                   name: app-configmap
                   key: gather-kube-metrics
+            - name: IS_EXTERNAL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configmap
+                  key: is-external
           image: irynanak/monitoring-app:latest
           name: celery-worker
           imagePullPolicy: IfNotPresent

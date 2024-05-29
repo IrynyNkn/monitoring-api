@@ -17,3 +17,4 @@ data:
   postgres-host: "postgres"
   postgres-port: "5432"
   postgres-db: "metrics-api"
+  is-external: "false"
