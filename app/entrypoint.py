@@ -8,7 +8,10 @@ factory = ApplicationFactory()
 app = factory.create_external_application() if application_is_external else factory.create_internal_application()
 
 if application_is_external:
+    from app.metrics.celery_external import *
+
     fastapi_app = app.fastapi
+    celery_app = app.celery
 else:
     from app.metrics.celery_tasks import *
 

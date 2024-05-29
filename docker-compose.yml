@@ -28,20 +28,20 @@ services:
       - app
       - redis
 
-  flower:
-    container_name: flower
-    build: .
-    command: celery -A app.entrypoint:celery_app flower --port:5555
-    ports:
-      - "5556:5555"
-    volumes:
-      - ./app:/source/app
-    env_file:
-      - .env
-    depends_on:
-      - app
-      - redis
-      - celery_worker
+#  flower:
+#    container_name: flower
+#    build: .
+#    command: celery -A app.entrypoint:celery_app flower --port:5555
+#    ports:
+#      - "5556:5555"
+#    volumes:
+#      - ./app:/source/app
+#    env_file:
+#      - .env
+#    depends_on:
+#      - app
+#      - redis
+#      - celery_worker
 
   redis:
     container_name: redis

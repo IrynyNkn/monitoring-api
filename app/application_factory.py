@@ -26,6 +26,8 @@ class ApplicationFactory:
     def create_external_application(self) -> Application:
         return (
             ApplicationBuilder.from_config(AppSettings())
+            .with_redis()
+            .with_celery()
             .with_fastapi()
             .with_fastapi_routes(
                 [external_ping_router],
